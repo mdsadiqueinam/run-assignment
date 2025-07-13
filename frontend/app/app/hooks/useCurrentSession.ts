@@ -2,9 +2,6 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useLocalStorageState } from "ahooks";
 import { v4 as uuidv4 } from "uuid";
 
-// Unique identifier for the current tab
-const TAB_ID = `tab-${uuidv4()}`;
-
 // Session state management
 let currentSession: any = undefined; // undefined = unknown, null = logged out
 const sessionListeners = new Set<(session: any) => void>();
@@ -17,6 +14,12 @@ function updateSession(newSession: any) {
 
 // Custom hook for current session
 export const useCurrentSession = () => {
+  const [TAB_ID, setTabId] = useSessionStorageState("tab-id");
+
+  if (!TAB_ID) {
+    setTabId(`tab-${uuidv4()}`);
+  }
+
   const [session, setSession] = useState(currentSession);
   const [tabMessage, setTabMessage] = useLocalStorageState<string | null>(
     "tabMessage",
@@ -42,6 +45,7 @@ export const useCurrentSession = () => {
 
         // Ignore messages originating from the same tab
         if (origin === TAB_ID) return;
+        // return;
 
         // Handle logout message
         if (message === "logout") {

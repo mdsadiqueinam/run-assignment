@@ -9,6 +9,7 @@ export default function Signup() {
   const {
     session: currentSession,
     logoutCurrentSession: _logoutCurrentSession,
+    init: _initCurrentSession,
   } = useCurrentSession();
   const { isDark: _isDark } = useDarkMode();
 
@@ -73,6 +74,10 @@ export default function Signup() {
     // Use the hook's logout function
     await _logoutCurrentSession();
   };
+
+  useEffect(() => {
+    _initCurrentSession();
+  }, []);
 
   if (_isLoading) {
     return (
