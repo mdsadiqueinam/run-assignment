@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useRef, type ReactNode } from 'react';
-import { isEventOnTextInput } from '../utils/isEventOnTextInput';
-import { useDevtools } from './useDevtools';
+import { isEventOnTextInput } from '../../utils/isEventOnTextInput';
+import { useDevtools } from '../../hooks/useDevtools';
 import {useEventListener} from 'ahooks'
 
 // Types
