@@ -7,6 +7,7 @@
 export {}
 declare global {
   const SignedInSetup: typeof import('./app/components/SignedInSetup')['default']
+  const ThemeToggle: typeof import('./app/components/ThemeToggle')['default']
   const ToastContainer: typeof import('./app/components/ToastContainer')['default']
   const createRef: typeof import('react')['createRef']
   const forwardRef: typeof import('react')['forwardRef']
@@ -29,6 +30,7 @@ declare global {
   const useCounter: typeof import('ahooks')['useCounter']
   const useCreation: typeof import('ahooks')['useCreation']
   const useCurrentSession: typeof import('./app/hooks/useCurrentSession')['useCurrentSession']
+  const useDarkMode: typeof import('./app/hooks/useDarkMode')['useDarkMode']
   const useDebounce: typeof import('ahooks')['useDebounce']
   const useDebounceEffect: typeof import('ahooks')['useDebounceEffect']
   const useDebounceFn: typeof import('ahooks')['useDebounceFn']
