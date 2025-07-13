@@ -55,12 +55,15 @@ export function meta() {
 export default function App() {
   // --- Hooks (equivalent to Vue's composables) ---
   const location = useLocation();
-  const { session } = useCurrentSession();
+  const { session, init: _initCurrentSession } = useCurrentSession();
 
   // --- Handlers ---
   // None currently
 
   // --- Lifecycle hooks & related ---
+  useEffect(() => {
+    _initCurrentSession();
+  }, []);
 
   // Define unsecured paths
   const unsecuredPaths = ["/signin", "/signup", "/login"];
