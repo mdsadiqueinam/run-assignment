@@ -1,45 +1,51 @@
-import DropPickerPanel from './DropPickerPanel';
+import DropPickerPanel from "./DropPickerPanel";
 
 interface TimeZoneDropPickerPanelProps {
   timeZone: string | null;
-  onTimeZoneChange: (value: string | number | (string | number)[] | null) => void;
+  onTimeZoneChange: (value: string) => void;
   onClose: () => void;
   widthClass?: string;
   customPlaceholder?: string;
 }
 
-// Temporary placeholder for i18n - replace with actual i18n implementation
-const t = (key: string) => key;
-
 export default function TimeZoneDropPickerPanel({
   timeZone,
   onTimeZoneChange,
   onClose,
-  widthClass = 'w-48',
-  customPlaceholder = '',
+  widthClass = "w-48",
+  customPlaceholder = "",
 }: TimeZoneDropPickerPanelProps) {
   const timeZoneOptions = useMemo(() => {
-    const timeZones = Intl.supportedValuesOf('timeZone');
+    const timeZones = Intl.supportedValuesOf("timeZone");
     return timeZones.map((zone) => {
-      const offset = new Date().toLocaleTimeString('en-us', { 
-        timeZone: zone, 
-        timeZoneName: 'short' 
-      }).split(' ')[2];
+      const offset = new Date()
+        .toLocaleTimeString("en-us", {
+          timeZone: zone,
+          timeZoneName: "short",
+        })
+        .split(" ")[2];
       const text = `${zone}`;
       return {
         id: text,
-        name: text.replace(/_/g, ' '),
+        name: text.replace(/_/g, " "),
         offset,
       };
     });
   }, []);
 
+  const memoizedOnTimeZoneIdChange = useCallback(
+    (value: string | number | (string | number)[] | null) => {
+      onTimeZoneChange(value as string);
+    },
+    [onTimeZoneChange]
+  );
+
   return (
     <DropPickerPanel
       items={timeZoneOptions}
       selectedItemId={timeZone}
-      onSelectedItemIdChange={onTimeZoneChange}
-      filterPlaceholder={customPlaceholder || t('Time zone')}
+      onSelectedItemIdChange={memoizedOnTimeZoneIdChange}
+      filterPlaceholder={customPlaceholder || "Time zone"}
       widthClass={widthClass}
       iconWidthClass="w-10"
       extraSearchFields="offset"
