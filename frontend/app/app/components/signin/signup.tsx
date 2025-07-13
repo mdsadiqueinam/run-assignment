@@ -44,7 +44,7 @@ export default function Signup() {
 
     try {
       const response = await fetch("/services/signup.json", {
-        method: "POST",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },

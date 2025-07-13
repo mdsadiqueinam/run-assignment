@@ -10,7 +10,7 @@ router.put(
   express.json(),
   async function (req, res) {
     try {
-      let { timeZone } = req.body;
+      let { timeZone, phone, permissionId } = req.body;
 
       // Validate timeZone
       const validTimeZones = Intl.supportedValuesOf("timeZone");
@@ -26,6 +26,20 @@ router.put(
           `Invalid time zone provided: ${timeZone}. Defaulting to "America/New_York".`
         );
         timeZone = "America/New_York";
+      }
+
+      // Validate phone (optional but if provided, should be valid)
+      if (phone && typeof phone !== "string") {
+        return res.status(400).json({
+          message: "Phone number must be a string",
+        });
+      }
+
+      // Validate permissionId (optional but if provided, should be valid)
+      if (permissionId && typeof permissionId !== "string") {
+        return res.status(400).json({
+          message: "Permission ID must be a string",
+        });
       }
 
       if (!req.session?.passport?.user?.email) {
@@ -57,7 +71,9 @@ router.put(
           email,
           first_name,
           last_name,
+          phone,
           time_zone,
+          permission_id,
           state_id,
           updated_at
         )
@@ -65,7 +81,9 @@ router.put(
           ${req.session.passport.user.email},
           ${req.session.passport.user.firstName || ""},
           ${req.session.passport.user.lastName || ""},
+          ${phone || null},
           ${timeZone},
+          ${permissionId || null},
           'ACTIVE',
           CURRENT_TIMESTAMP
         )
