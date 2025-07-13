@@ -41,8 +41,45 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+export function meta() {
+  return [
+    { title: "Ruh Care" },
+    { name: "description", content: "Main app routing" },
+  ];
+}
+
 export default function App() {
-  return <Outlet />;
+  // --- Hooks (equivalent to Vue's composables) ---
+  const location = useLocation();
+  
+  // --- Handlers ---
+  // None currently
+  
+  // --- Lifecycle hooks & related ---
+  // Additional lifecycle effects can be added here
+  
+  // Define unsecured paths
+  const unsecuredPaths = ['/signin', '/signup', '/login', '/app', '/'];
+  
+  // Check if current path is unsecured
+  const isUnsecuredPath = unsecuredPaths.includes(location.pathname) || 
+                         location.pathname === '/' || 
+                         location.pathname === '/app';
+  
+  return (
+    <>
+      {/* Unsecured pages */}
+      {isUnsecuredPath ? (
+        <Outlet />
+      ) : (
+        /* Secured app pages */
+        <>
+          <SignedInSetup />
+          <ToastContainer />
+        </>
+      )}
+    </>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
