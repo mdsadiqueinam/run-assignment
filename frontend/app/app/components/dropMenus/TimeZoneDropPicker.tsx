@@ -24,17 +24,12 @@ export default function TimeZoneDropPicker({
         {({ open }) => (
           <>
             <MenuButton as="div">{children?.({ open })}</MenuButton>
-            <MenuItems
-              anchor="bottom start"
-              className="relative rounded-xl border bg-main p-1 text-sm/6 transition duration-100 ease-out [--anchor-gap:--spacing(1)] focus:outline-none data-closed:scale-95 data-closed:opacity-0"
-            >
-              <TimeZoneDropPickerPanel
-                timeZone={timeZoneId}
-                onTimeZoneChange={onTimeZoneIdChange}
-                widthClass={widthClass}
-                customPlaceholder={customPlaceholder}
-              />
-            </MenuItems>
+            <TimeZoneDropPickerPanel
+              timeZone={timeZoneId}
+              onTimeZoneChange={onTimeZoneIdChange}
+              widthClass={widthClass}
+              customPlaceholder={customPlaceholder}
+            />
           </>
         )}
       </Menu>
