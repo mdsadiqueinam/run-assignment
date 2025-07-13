@@ -63,7 +63,7 @@ declare global {
   const useDeepCompareLayoutEffect: typeof import('ahooks')['useDeepCompareLayoutEffect']
   const useDeferredValue: typeof import('react')['useDeferredValue']
   const useDevtools: typeof import('./app/hooks/useDevtools')['useDevtools']
-  const useDocumentVisibility: typeof import('./app/hooks/useIdleDetection')['useDocumentVisibility']
+  const useDocumentVisibility: typeof import('ahooks')['useDocumentVisibility']
   const useDrag: typeof import('ahooks')['useDrag']
   const useDrop: typeof import('ahooks')['useDrop']
   const useDynamicList: typeof import('ahooks')['useDynamicList']

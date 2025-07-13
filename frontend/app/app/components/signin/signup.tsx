@@ -1,5 +1,7 @@
 import { XMarkIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 import { Link } from "react-router";
+import { Description, Field, Input, Label } from "@headlessui/react";
+import clsx from "clsx";
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -12,6 +14,7 @@ export default function Signup() {
 
   // State
   const [signupData, setSignupData] = useState({
+    phone: "",
     permissionId: "client",
     timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   });
@@ -35,6 +38,10 @@ export default function Signup() {
   const googleAuthUrl = "/auth/login/federated/google";
 
   // Handlers
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSignupData((prev) => ({ ...prev, phone: e.target.value }));
+  };
+
   const handlePermissionChange = (permissionId: string) => {
     setSignupData((prev) => ({ ...prev, permissionId }));
   };
@@ -222,8 +229,29 @@ export default function Signup() {
             {currentSession && (
               <div className="mt-4 w-full flex flex-col gap-5 items-center">
                 <h4 className="text-xl font-medium leading-8 tracking-tight text-center text-main-text mb-5">
-                  Select your permission and timezone
+                  Complete your profile
                 </h4>
+
+                <div className="w-full max-w-[300px]">
+                  <Field>
+                    <Label className="text-sm font-medium text-gray-300 mb-1">
+                      Phone Number
+                    </Label>
+                    <Description className="text-sm text-gray-400 mb-2">
+                      Enter your phone number for account verification.
+                    </Description>
+                    <Input
+                      type="tel"
+                      value={signupData.phone}
+                      onChange={handlePhoneChange}
+                      placeholder="Enter your phone number"
+                      className={clsx(
+                        "block w-full rounded-md border-none bg-dark-800 px-3 py-2 text-sm text-main-text",
+                        "focus:not-data-focus:outline-none data-focus:outline-2 data-focus:-outline-offset-2 data-focus:outline-blue-500/50"
+                      )}
+                    />
+                  </Field>
+                </div>
 
                 <div className="flex flex-col gap-1">
                   <div className="block text-sm font-medium text-gray-300 mb-1">
@@ -290,7 +318,11 @@ export default function Signup() {
                   size="lg"
                   type="button"
                   onClick={handleSubmit}
-                  disabled={isSubmitting || !signupData.permissionId}
+                  disabled={
+                    isSubmitting ||
+                    !signupData.permissionId ||
+                    !signupData.phone.trim()
+                  }
                   className="mt-10 w-[240px] h-[50px] text-md font-bold"
                 >
                   {isSubmitting ? (
