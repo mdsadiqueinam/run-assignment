@@ -1,7 +1,7 @@
 import { CheckIcon } from '@heroicons/react/24/solid';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import { KeyboardShortcutContextProvider, useKeyboardShortcut } from '../common/KeyboardShortcut';
-import { createSearchRegex } from '@/utils/search';
+import { createSearchRegex } from 'app/utils/search';
 import type { ReactNode } from 'react';
 
 interface DropPickerPanelItem {
