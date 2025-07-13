@@ -5,8 +5,15 @@ import { v4 as uuidv4 } from "uuid";
 // Unique identifier for the current tab
 const TAB_ID = `tab-${uuidv4()}`;
 
-// Session state
+// Session state management
 let currentSession: any = undefined; // undefined = unknown, null = logged out
+const sessionListeners = new Set<(session: any) => void>();
+
+// Function to update session globally
+function updateSession(newSession: any) {
+  currentSession = newSession;
+  sessionListeners.forEach((listener) => listener(newSession));
+}
 
 // Custom hook for current session
 export const useCurrentSession = () => {
@@ -17,6 +24,14 @@ export const useCurrentSession = () => {
       defaultValue: null,
     }
   );
+
+  // Subscribe to session changes
+  useEffect(() => {
+    sessionListeners.add(setSession);
+    return () => {
+      sessionListeners.delete(setSession);
+    };
+  }, []);
 
   // Handle inter-tab communication via useLocalStorageState
   useEffect(() => {
@@ -123,10 +138,9 @@ export const useCurrentSession = () => {
         return null;
       }
 
-      // Set the session data
+      // Set the session data globally (this will update all components)
       const sessionData = data.session;
-      currentSession = sessionData;
-      setSession(sessionData);
+      updateSession(sessionData);
       return sessionData;
     },
     []
@@ -178,7 +192,7 @@ export async function hydrateSession() {
   }
   const data = await response.json();
   if (response.ok) {
-    currentSession = data.session;
+    updateSession(data.session);
     return data.session;
   }
   return null;
@@ -202,6 +216,6 @@ export async function init() {
     return null;
   }
 
-  currentSession = data.session;
+  updateSession(data.session);
   return data.session;
 }
