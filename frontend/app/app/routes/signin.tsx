@@ -10,9 +10,6 @@ export default function SignIn() {
   // --- State (equivalent to Vue's ref) ---
   const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
   
-  // --- Hooks ---
-  const { isDark } = useDarkMode();
-  
   // --- Handlers ---
   const handleGoogleSignIn = (e: React.MouseEvent) => {
     if (isLoadingGoogle) {
@@ -30,7 +27,7 @@ export default function SignIn() {
           {/* Fixed logo section */}
           <div>
             <img 
-              src={isDark ? "/logo-dark.png" : "/logo.png"} 
+              src="https://cdn.prod.website-files.com/64bfe68d3f479572876205b2/64cdca5e648369d914c4ac00_Ruh%20Main%20Logo.png" 
               className="mx-auto w-60" 
               alt="Logo"
             />
