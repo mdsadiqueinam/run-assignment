@@ -1,15 +1,238 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/forms";
+@plugin "@tailwindcss/typography";
+@plugin "@tailwindcss/aspect-ratio";
+
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+  --animate-spin-slow: spin 9s linear infinite;
+
+  --breakpoint-hub-md: 825px;
+  --breakpoint-hub-lg: 1440px;
+  --breakpoint-xs: 450px;
+
+  --text-2xl: 2.14em;
+  --text-xxl: 1.7em;
+  --text-xl: 1.42em;
+  --text-lg: 1.3em;
+  --text-md: 1.1em;
+  --text-sm: 1em;
+  --text-nav: 0.92em;
+  --text-tiny: 0.71em;
+
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-weight-semibold: 500;
+
+  --color-black: #2b2b29;
+
+  --color-gray-1: #333333;
+  --color-gray-5: #e0e0e0;
+  --color-gray-c: #f7f7f7;
+
+  --color-gray-dark-2: #333330;
+  --color-gray-dark: #a9a9a9;
+
+  --color-good: #66bb55;
+  --color-bad: #f20101;
+  --color-red: #f20101;
+  --color-past: #ed9121;
+  --color-running: #128b32;
+  --color-priority-high: var(--priority-high);
+  --color-priority-medium: var(--priority-medium);
+  --color-priority-low: var(--priority-low);
+  --color-divider: var(--divider);
+  --color-divider-subtle: var(--divider-subtle);
+  --color-divider-hover: var(--divider-hover);
+  --color-divider-outline: var(--divider-outline);
+  --color-main: var(--main);
+  --color-main-subtle-hover: var(--main-subtle-hover);
+  --color-main-selected: var(--main-selected);
+  --color-main-text: var(--main-text);
+  --color-main-text-hover: var(--main-text-hover);
+  --color-main-selected-text: var(--main-selected-text);
+  --color-main-unselected-text: var(--main-unselected-text);
+  --color-main-unselected: var(--main-unselected);
+  --color-main-unselected-hover: var(--main-unselected-hover);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-text: var(--sidebar-text);
+  --color-sidebar-text-hover: var(--sidebar-text-hover);
+  --color-sidebar-text-selected: var(--sidebar-text-selected);
+  --color-sidebar-hover: var(--sidebar-hover);
+  --color-sidebar-selected: var(--sidebar-selected);
+  --color-sidebar-unselected: var(--sidebar-unselected);
+  --color-sidebar-unselected-hover: var(--sidebar-unselected-hover);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-text: var(--primary-text);
+  --color-primary-text-hover: var(--primary-text-hover);
+  --color-link-text: var(--secondary-text);
 }
 
-html,
-body {
-  @apply bg-white dark:bg-gray-950;
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
 
-  @media (prefers-color-scheme: dark) {
-    color-scheme: dark;
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+@utility custom-wrap-360 {
+  @media (max-width: 360px) {
+    flex-wrap: wrap;
+  }
+}
+
+@utility show-at-320 {
+  @media (min-width: 360px) {
+    display: block;
+  }
+}
+
+@layer utilities {
+  body {
+    font-size: 14px;
+  }
+  body.font-smaller {
+    font-size: 12px;
+  }
+  body.font-small {
+    font-size: 13px;
+  }
+  body.font-large {
+    font-size: 15px;
+  }
+  body.font-larger {
+    font-size: 16px;
+  }
+
+  :focus-visible {
+    outline: 1px solid rgb(0, 89, 255);
+  }
+
+  .btn {
+    @apply flex items-center whitespace-nowrap rounded-lg border border-transparent bg-white px-4 py-2 text-center text-sm font-medium text-black transition-colors duration-150 hover:bg-white/90 focus:outline-hidden active:bg-gray-100 active:text-gray-700;
+  }
+
+  /* Scroll bar stylings */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 10px;
+  }
+
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: var(--bg-sidebar);
+  }
+
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: var(--bg-sidebar-unselected);
+    border-radius: 5px;
+  }
+
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+}
+
+@layer base {
+  :root,
+  .light {
+    /* Globals - same in light and dark */
+    --priority-high: #f20101;
+    --priority-medium: #f2bf01;
+    --priority-low: #84e7a0;
+
+    /* ***** LIGHT THEME ***** */
+    --divider: #eee;
+    --divider-subtle: #f0f0f066;
+    --divider-hover: #dddddd; /* for drag */
+    --divider-outline: #00000033; /* for button outline */
+    /* main - main background */
+    --main: #ffffff;
+    --main-subtle-hover: #f7f7f7;
+    --main-selected: #e0e6fb;
+    --main-text: #323232;
+    --main-text-hover: #000000;
+    --main-selected-text: #000000;
+    --main-unselected: #f8f8f8;
+    --main-unselected-text: #77777a;
+    --main-unselected-hover: #f6f6f6;
+    /* main 2 - used in sidebar */
+    --sidebar: #fbfbfc;
+    --sidebar-text: #252831;
+    --sidebar-text-hover: #000000;
+    --sidebar-hover: #e7e7e7;
+    --sidebar-selected: #e9e9e9;
+    --sidebar-unselected: #eeeeee;
+    --sidebar-unselected-hover: #f4f4f4;
+    /* Primary button color */
+    --primary: #f76317;
+    --primary-hover: #f15022;
+    --primary-text: #eeeeee;
+    --primary-text-hover: #ffffff;
+    /* Secondary button color */
+    --secondary-text: #7a88ff;
+  }
+
+  .dark {
+    --divider: #272735;
+    --divider-subtle: #27273566;
+    --divider-hover: #3c3c51; /* for drag */
+    --divider-outline: #ffffff4c; /* for button outline */
+    /* main (main background) */
+    --main: #1a1928;
+    --main-subtle-hover: #1d1c2d;
+    --main-text: #d1d1d4;
+    --main-text-hover: #fafafa;
+    --main-unselected: #222333;
+    --main-unselected-text: #97979a;
+    --main-unselected-hover: #282b3d;
+    --main-selected: #353a52;
+    --main-selected-text: #ffffff;
+    /* Sidebar */
+    --sidebar: #14141f;
+    --sidebar-text: #d1d1d4;
+    --sidebar-text-hover: #fafafa;
+    --sidebar-text-selected: #ffffff;
+    --sidebar-hover: #1c1d2a;
+    --sidebar-selected: #292d40;
+    --sidebar-unselected: #222333;
+    --sidebar-unselected-hover: #1a1c28;
+    /* Primary button color */
+    --primary: #f76317;
+    --primary-hover: #f15022;
+    --primary-text: #eeeeee;
+    --primary-text-hover: #ffffff;
+    /* Secondary button color */
+    --secondary-text: #7a88ff;
+  }
+}
+
+@layer utilities {
+  .status-change-enter-active,
+  .status-change-leave-active {
+    transition: all 0.3s ease;
+  }
+
+  .status-change-enter-from {
+    transform: scale(0.8) rotate(-180deg);
+  }
+
+  .status-change-leave-to {
+    transform: scale(0.8) rotate(10deg);
   }
 }
