@@ -7,12 +7,16 @@
 export {}
 declare global {
   const BaseButton: typeof import('./app/components/common/BaseButton')['default']
+  const BasePopover: typeof import('./app/components/common/BasePopover')['default']
   const BaseTooltip: typeof import('./app/components/common/BaseTooltip')['default']
   const DropPickerPanel: typeof import('./app/components/dropMenus/DropPickerPanel')['default']
   const KeyboardShortcutContextProvider: typeof import('./app/components/common/KeyboardShortcut')['KeyboardShortcutContextProvider']
   const KeyboardShortcutProvider: typeof import('./app/components/common/KeyboardShortcut')['KeyboardShortcutProvider']
+  const PopOverPlacement: typeof import('./app/components/constant')['PopOverPlacement']
   const SignedInSetup: typeof import('./app/components/SignedInSetup')['default']
   const ThemeToggle: typeof import('./app/components/ThemeToggle')['default']
+  const TimeZoneDropPicker: typeof import('./app/components/dropMenus/TimeZoneDropPicker')['default']
+  const TimeZoneDropPickerPanel: typeof import('./app/components/dropMenus/TimeZoneDropPickerPanel')['default']
   const ToastContainer: typeof import('./app/components/ToastContainer')['default']
   const UseKeyboardShortcut: typeof import('./app/components/common/KeyboardShortcut')['UseKeyboardShortcut']
   const baseButtonExample: typeof import('./app/components/common/BaseButton.example')['default']
