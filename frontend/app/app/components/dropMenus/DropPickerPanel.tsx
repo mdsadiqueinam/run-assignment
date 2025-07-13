@@ -18,7 +18,6 @@ interface DropPickerPanelProps {
   onSelectedItemIdChange: (
     value: string | number | (string | number)[] | null
   ) => void;
-  onClose: () => void;
   required?: boolean;
   closeOnSelect?: boolean;
   filterPlaceholder?: string;
@@ -42,7 +41,6 @@ export default function DropPickerPanel({
   items,
   selectedItemId,
   onSelectedItemIdChange,
-  onClose,
   closeOnSelect = true,
   filterPlaceholder = "Search",
   widthClass = "w-48",
@@ -82,11 +80,11 @@ export default function DropPickerPanel({
 
   // --- Handlers ---
   const selectItem = useCallback(
-    (itemId: string | number, isFromCheckbox = false) => {
+    (itemId: string | number, isFromCheckbox = false, close: () => void) => {
       if (multiple) {
         if (isFilter && !isFromCheckbox) {
           onSelectedItemIdChange([itemId]);
-          onClose();
+          close();
           return;
         }
 
@@ -106,16 +104,9 @@ export default function DropPickerPanel({
         onSelectedItemIdChange(itemId);
       }
 
-      if (closeOnSelect && !multiple) onClose();
+      if (closeOnSelect && !multiple) close();
     },
-    [
-      multiple,
-      isFilter,
-      selectedItemId,
-      onSelectedItemIdChange,
-      onClose,
-      closeOnSelect,
-    ]
+    [multiple, isFilter, selectedItemId, onSelectedItemIdChange, closeOnSelect]
   );
 
   // --- Computed values ---
@@ -174,76 +165,78 @@ export default function DropPickerPanel({
           >
             {filteredItems.map((item, itemNo) => (
               <MenuItem as="div" key={item.id} className="h-8 shrink-0 px-1">
-                <div
-                  className="option sidebar-text group/status flex h-full cursor-pointer items-center gap-3 text-nowrap rounded-md pl-2 pr-3 text-main-unselected-text hover:bg-main-unselected-hover hover:text-main-text-hover"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    selectItem(item.id);
-                  }}
-                >
-                  {isFilter && (
-                    <input
-                      checked={
-                        Array.isArray(selectedItemId) &&
-                        selectedItemId.includes(item.id)
-                      }
-                      type="checkbox"
-                      className="h-4 w-4 rounded bg-gray-100 cursor-pointer text-black focus:ring-black dark:bg-gray-700 dark:focus:ring-black"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        selectItem(item.id, true);
-                      }}
-                    />
-                  )}
-
-                  {showIconSlot && (
-                    <span
-                      className={`opacity-80 group-hover/status:opacity-100 ${
-                        iconWidthClass === "w-5" ? "w-5" : "w-10"
-                      } hover:brightness-90 dark:hover:brightness-125`}
-                    >
-                      {iconSlot
-                        ? iconSlot(item)
-                        : item.icon && <item.icon className="size-4" />}
-                    </span>
-                  )}
-
-                  <span
-                    className="grow overflow-hidden text-ellipsis"
-                    title={item.name}
+                {({ close }) => (
+                  <div
+                    className="option sidebar-text group/status flex h-full cursor-pointer items-center gap-3 text-nowrap rounded-md pl-2 pr-3 text-main-unselected-text hover:bg-main-unselected-hover hover:text-main-text-hover"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      selectItem(item.id, false, close);
+                    }}
                   >
-                    {textSlot ? textSlot(item) : item.name}
-                  </span>
+                    {isFilter && (
+                      <input
+                        checked={
+                          Array.isArray(selectedItemId) &&
+                          selectedItemId.includes(item.id)
+                        }
+                        type="checkbox"
+                        className="h-4 w-4 rounded bg-gray-100 cursor-pointer text-black focus:ring-black dark:bg-gray-700 dark:focus:ring-black"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          selectItem(item.id, true, close);
+                        }}
+                      />
+                    )}
 
-                  {(multiple
-                    ? Array.isArray(selectedItemId) &&
-                      selectedItemId.includes(item.id)
-                    : item.id === selectedItemId) &&
-                    !isFilter && <CheckIcon className="size-3 shrink-0" />}
-
-                  {showInfo && (
-                    <BaseTooltip
-                      contentSlot={
-                        tooltipTextSlot ? tooltipTextSlot(item) : undefined
-                      }
-                    >
-                      <InformationCircleIcon className="ml-2 size-4" />
-                    </BaseTooltip>
-                  )}
-
-                  {useItemIdForShortcut &&
-                    typeof item.id === "number" &&
-                    item.id < 10 && (
-                      <span className="shrink-0 text-xs opacity-50">
-                        {item.id}
+                    {showIconSlot && (
+                      <span
+                        className={`opacity-80 group-hover/status:opacity-100 ${
+                          iconWidthClass === "w-5" ? "w-5" : "w-10"
+                        } hover:brightness-90 dark:hover:brightness-125`}
+                      >
+                        {iconSlot
+                          ? iconSlot(item)
+                          : item.icon && <item.icon className="size-4" />}
                       </span>
                     )}
-                  {!useItemIdForShortcut && itemNo < 9 && (
-                    <span className="shrink-0 text-xs opacity-50">
-                      {itemNo + 1}
+
+                    <span
+                      className="grow overflow-hidden text-ellipsis"
+                      title={item.name}
+                    >
+                      {textSlot ? textSlot(item) : item.name}
                     </span>
-                  )}
-                </div>
+
+                    {(multiple
+                      ? Array.isArray(selectedItemId) &&
+                        selectedItemId.includes(item.id)
+                      : item.id === selectedItemId) &&
+                      !isFilter && <CheckIcon className="size-3 shrink-0" />}
+
+                    {showInfo && (
+                      <BaseTooltip
+                        contentSlot={
+                          tooltipTextSlot ? tooltipTextSlot(item) : undefined
+                        }
+                      >
+                        <InformationCircleIcon className="ml-2 size-4" />
+                      </BaseTooltip>
+                    )}
+
+                    {useItemIdForShortcut &&
+                      typeof item.id === "number" &&
+                      item.id < 10 && (
+                        <span className="shrink-0 text-xs opacity-50">
+                          {item.id}
+                        </span>
+                      )}
+                    {!useItemIdForShortcut && itemNo < 9 && (
+                      <span className="shrink-0 text-xs opacity-50">
+                        {itemNo + 1}
+                      </span>
+                    )}
+                  </div>
+                )}
               </MenuItem>
             ))}
           </div>

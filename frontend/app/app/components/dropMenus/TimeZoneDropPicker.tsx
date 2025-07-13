@@ -1,4 +1,4 @@
-import { Menu, MenuButton, MenuItems } from "@headlessui/react";
+import { Menu, MenuButton, MenuItems, Popover } from "@headlessui/react";
 import TimeZoneDropPickerPanel from "./TimeZoneDropPickerPanel";
 
 interface TimeZoneDropPickerProps {
@@ -21,17 +21,13 @@ export default function TimeZoneDropPicker({
   if (canEdit) {
     return (
       <Menu as="div">
-        {({ open, close }) => (
+        {({ open }) => (
           <>
             <MenuButton as="div">{children?.({ open })}</MenuButton>
-            <MenuItems
-              transition
-              className="relative rounded-xl border border-white/5 bg-white/5 p-1 text-sm/6 text-white transition duration-100 ease-out [--anchor-gap:--spacing(1)] focus:outline-none data-closed:scale-95 data-closed:opacity-0"
-            >
+            <MenuItems className="relative rounded-xl border border-white/5 bg-white/5 p-1 text-sm/6 text-white transition duration-100 ease-out [--anchor-gap:--spacing(1)] focus:outline-none data-closed:scale-95 data-closed:opacity-0">
               <TimeZoneDropPickerPanel
                 timeZone={timeZoneId}
                 onTimeZoneChange={onTimeZoneIdChange}
-                onClose={close}
                 widthClass={widthClass}
                 customPlaceholder={customPlaceholder}
               />

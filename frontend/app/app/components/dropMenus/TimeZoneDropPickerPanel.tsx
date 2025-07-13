@@ -3,7 +3,6 @@ import DropPickerPanel from "./DropPickerPanel";
 interface TimeZoneDropPickerPanelProps {
   timeZone: string | null;
   onTimeZoneChange: (value: string) => void;
-  onClose: () => void;
   widthClass?: string;
   customPlaceholder?: string;
 }
@@ -11,7 +10,6 @@ interface TimeZoneDropPickerPanelProps {
 export default function TimeZoneDropPickerPanel({
   timeZone,
   onTimeZoneChange,
-  onClose,
   widthClass = "w-48",
   customPlaceholder = "",
 }: TimeZoneDropPickerPanelProps) {
@@ -49,7 +47,6 @@ export default function TimeZoneDropPickerPanel({
       widthClass={widthClass}
       iconWidthClass="w-10"
       extraSearchFields="offset"
-      onClose={onClose}
       iconSlot={(item) => item.offset}
       textSlot={(item) => item.name}
     />
