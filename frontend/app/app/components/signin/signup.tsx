@@ -1,7 +1,5 @@
 import { XMarkIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 import { Link } from "react-router";
-import { Description, Field, Input, Label } from "@headlessui/react";
-import clsx from "clsx";
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -232,26 +230,15 @@ export default function Signup() {
                   Complete your profile
                 </h4>
 
-                <div className="w-full max-w-[300px]">
-                  <Field>
-                    <Label className="text-sm font-medium text-gray-300 mb-1">
-                      Phone Number
-                    </Label>
-                    <Description className="text-sm text-gray-400 mb-2">
-                      Enter your phone number for account verification.
-                    </Description>
-                    <Input
-                      type="tel"
-                      value={signupData.phone}
-                      onChange={handlePhoneChange}
-                      placeholder="Enter your phone number"
-                      className={clsx(
-                        "block w-full rounded-md border-none bg-dark-800 px-3 py-2 text-sm text-main-text",
-                        "focus:not-data-focus:outline-none data-focus:outline-2 data-focus:-outline-offset-2 data-focus:outline-blue-500/50"
-                      )}
-                    />
-                  </Field>
-                </div>
+                <BaseInput
+                  label="Phone Number"
+                  description="Enter your phone number for account verification."
+                  type="tel"
+                  value={signupData.phone}
+                  onChange={handlePhoneChange}
+                  placeholder="Enter your phone number"
+                  required
+                />
 
                 <div className="flex flex-col gap-1">
                   <div className="block text-sm font-medium text-gray-300 mb-1">

@@ -7,6 +7,7 @@
 export {}
 declare global {
   const BaseButton: typeof import('./app/components/common/BaseButton')['default']
+  const BaseInput: typeof import('./app/components/common/BaseInput')['default']
   const BasePopover: typeof import('./app/components/common/BasePopover')['default']
   const BaseTooltip: typeof import('./app/components/common/BaseTooltip')['default']
   const DropPickerPanel: typeof import('./app/components/dropMenus/DropPickerPanel')['default']
