@@ -1,0 +1,48 @@
+{
+  "name": "vue-template-monorepo",
+  "version": "1.0.0",
+  "description": "Vue template monorepo with backend services",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "^22"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel run dev",
+    "build": "pnpm -r run build",
+    "start": "pnpm --parallel run start",
+    "clean": "pnpm -r exec rm -rf node_modules && rm -rf node_modules",
+    "install:all": "pnpm install",
+    "lint": "pnpm -r run lint",
+    "format": "pnpm -r run format",
+    "dev:frontend": "pnpm --filter vue-template run dev",
+    "build:frontend": "pnpm --filter vue-template run build",
+    "preview:frontend": "pnpm --filter vue-template run preview",
+    "start:api": "pnpm --filter api run start",
+    "start:serviceapi": "pnpm --filter serviceapi run start",
+    "start:sync": "pnpm --filter sync run start",
+    "start:backend": "pnpm --parallel --filter \"./backend/*\" run start",
+    "install:frontend": "pnpm --filter vue-template install",
+    "install:backend": "pnpm --filter \"./backend/*\" install",
+    "compose:mini": "docker compose up -d postgres redis"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "nodemon": "3.1.10"
+  },
+  "workspaces": [
+    "frontend/*",
+    "backend/*"
+  ],
+  "keywords": [
+    "monorepo",
+    "vue",
+    "express",
+    "pnpm",
+    "workspace"
+  ],
+  "author": "",
+  "license": "MIT",
+  "packageManager": "pnpm@10.9.0+sha512.0486e394640d3c1fb3c9d43d49cf92879ff74f8516959c235308f5a8f62e2e19528a65cdc2a3058f587cde71eba3d5b56327c8c33a97e4c4051ca48a10ca2d5f"
+}
