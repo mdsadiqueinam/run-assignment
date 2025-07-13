@@ -1,7 +1,5 @@
-import { useState, useEffect } from "react";
 import { XMarkIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
-import { useNavigate, Link } from "react-router";
-import BaseButton from "../common/BaseButton";
+import { Link } from "react-router";
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -13,12 +11,10 @@ export default function Signup() {
   const { isDark: _isDark } = useDarkMode();
 
   // State
-  const [selectedPermission, setSelectedPermission] = useState<string | null>(
-    null
-  );
-  const [selectedTimeZone, setSelectedTimeZone] = useState(
-    Intl.DateTimeFormat().resolvedOptions().timeZone
-  );
+  const [signupData, setSignupData] = useState({
+    permissionId: "client",
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [_isLoading, _setIsLoading] = useState(false);
@@ -27,18 +23,26 @@ export default function Signup() {
   const formattedTimeZone = useMemo(() => {
     const gmtOffset = new Date()
       .toLocaleTimeString("en-us", {
-        timeZone: selectedTimeZone,
+        timeZone: signupData.timeZone,
         timeZoneName: "short",
       })
       .split(" ")[2];
 
-    const formattedTimeZoneName = selectedTimeZone.replace(/_/g, " ");
+    const formattedTimeZoneName = signupData.timeZone.replace(/_/g, " ");
     return `${gmtOffset} – ${formattedTimeZoneName}`;
-  }, [selectedTimeZone]);
+  }, [signupData.timeZone]);
 
   const googleAuthUrl = "/auth/login/federated/google";
 
   // Handlers
+  const handlePermissionChange = (permissionId: string) => {
+    setSignupData((prev) => ({ ...prev, permissionId }));
+  };
+
+  const handleTimeZoneChange = (timeZone: string) => {
+    setSignupData((prev) => ({ ...prev, timeZone }));
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsSubmitting(true);
@@ -50,10 +54,7 @@ export default function Signup() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          permissionId: selectedPermission,
-          timeZone: selectedTimeZone,
-        }),
+        body: JSON.stringify(signupData),
       });
 
       if (!response.ok) {
@@ -229,8 +230,8 @@ export default function Signup() {
                     Permission
                   </div>
                   <PermissionDropPicker
-                    permissionId={selectedPermission}
-                    onPermissionIdChange={setSelectedPermission}
+                    permissionId={signupData.permissionId}
+                    onPermissionIdChange={handlePermissionChange}
                     widthClass="w-[300px]"
                     customPlaceholder="Select Permission..."
                   >
@@ -240,8 +241,8 @@ export default function Signup() {
                         className="min-h-[2.5rem] max-h-[3rem] rounded-md bg-dark-800 border border-black p-2 text-left text-main-text flex items-center justify-between overflow-hidden w-[300px]"
                       >
                         <span className="truncate flex-1">
-                          {selectedPermission
-                            ? selectedPermission === "CLIENT"
+                          {signupData.permissionId
+                            ? signupData.permissionId === "CLIENT"
                               ? "Client"
                               : "Doctor"
                             : "Select Permission..."}
@@ -261,8 +262,8 @@ export default function Signup() {
                     Timezone
                   </div>
                   <TimeZoneDropPicker
-                    timeZoneId={selectedTimeZone}
-                    onTimeZoneIdChange={setSelectedTimeZone}
+                    timeZoneId={signupData.timeZone}
+                    onTimeZoneIdChange={handleTimeZoneChange}
                     widthClass="w-[300px]"
                     customPlaceholder="Select Time zone..."
                   >
@@ -289,7 +290,7 @@ export default function Signup() {
                   size="lg"
                   type="button"
                   onClick={handleSubmit}
-                  disabled={isSubmitting || !selectedPermission}
+                  disabled={isSubmitting || !signupData.permissionId}
                   className="mt-10 w-[240px] h-[50px] text-md font-bold"
                 >
                   {isSubmitting ? (
