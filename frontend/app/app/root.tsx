@@ -2,6 +2,7 @@ import {
   isRouteErrorResponse,
   Links,
   Meta,
+  Navigate,
   Outlet,
   Scripts,
   ScrollRestoration,
@@ -51,6 +52,7 @@ export function meta() {
 export default function App() {
   // --- Hooks (equivalent to Vue's composables) ---
   const location = useLocation();
+  const { session } = useCurrentSession();
   
   // --- Handlers ---
   // None currently
@@ -59,12 +61,20 @@ export default function App() {
   // Additional lifecycle effects can be added here
   
   // Define unsecured paths
-  const unsecuredPaths = ['/signin', '/signup', '/login', '/app', '/'];
+  const unsecuredPaths = ['/signin', '/signup', '/login'];
   
   // Check if current path is unsecured
-  const isUnsecuredPath = unsecuredPaths.includes(location.pathname) || 
-                         location.pathname === '/' || 
-                         location.pathname === '/app';
+  const isUnsecuredPath = unsecuredPaths.includes(location.pathname);
+  
+  // If user is not authenticated and trying to access a secured route
+  if (!session && !isUnsecuredPath) {
+    return <Navigate to="/signin" replace />;
+  }
+  
+  // If user is authenticated and trying to access unsecured routes, redirect to home
+  if (session && isUnsecuredPath) {
+    return <Navigate to="/home" replace />;
+  }
   
   return (
     <>
@@ -76,6 +86,7 @@ export default function App() {
         <>
           <SignedInSetup />
           <ToastContainer />
+          <Outlet />
         </>
       )}
     </>
