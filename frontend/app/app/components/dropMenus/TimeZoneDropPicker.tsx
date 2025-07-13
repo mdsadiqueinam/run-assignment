@@ -18,8 +18,6 @@ export default function TimeZoneDropPicker({
   customPlaceholder = "",
   children,
 }: TimeZoneDropPickerProps) {
-  const onClose = useCallback(() => {}, []); // Menu will handle closing automatically
-
   const memoizedOnTimeZoneIdChange = useCallback(
     (value: string | number | (string | number)[] | null) => {
       onTimeZoneIdChange(value as string);
@@ -30,7 +28,7 @@ export default function TimeZoneDropPicker({
   if (canEdit) {
     return (
       <Menu as="div">
-        {({ open }) => (
+        {({ open, close }) => (
           <>
             <MenuButton as="div">{children?.({ open })}</MenuButton>
             <MenuItems
@@ -41,7 +39,7 @@ export default function TimeZoneDropPicker({
               <TimeZoneDropPickerPanel
                 timeZone={timeZoneId}
                 onTimeZoneChange={memoizedOnTimeZoneIdChange}
-                onClose={onClose}
+                onClose={close}
                 widthClass={widthClass}
                 customPlaceholder={customPlaceholder}
               />
