@@ -8,6 +8,7 @@ export {}
 declare global {
   const BaseButton: typeof import('./app/components/common/BaseButton')['default']
   const BaseTooltip: typeof import('./app/components/common/BaseTooltip')['default']
+  const DropPickerPanel: typeof import('./app/components/dropMenus/DropPickerPanel')['default']
   const KeyboardShortcutContextProvider: typeof import('./app/components/common/KeyboardShortcut')['KeyboardShortcutContextProvider']
   const KeyboardShortcutProvider: typeof import('./app/components/common/KeyboardShortcut')['KeyboardShortcutProvider']
   const SignedInSetup: typeof import('./app/components/SignedInSetup')['default']
