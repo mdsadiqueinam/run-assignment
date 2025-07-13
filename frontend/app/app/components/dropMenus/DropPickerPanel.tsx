@@ -1,7 +1,7 @@
-import { CheckIcon } from '@heroicons/react/24/solid';
-import { InformationCircleIcon } from '@heroicons/react/24/outline';
-import { MenuItem } from '@headlessui/react';
-import type { ReactNode } from 'react';
+import { CheckIcon } from "@heroicons/react/24/solid";
+import { InformationCircleIcon } from "@heroicons/react/24/outline";
+import { MenuItem } from "@headlessui/react";
+import type { ReactNode } from "react";
 
 interface DropPickerPanelItem {
   id: string | number;
@@ -15,7 +15,9 @@ interface DropPickerPanelItem {
 interface DropPickerPanelProps {
   items: DropPickerPanelItem[];
   selectedItemId: string | number | (string | number)[] | null;
-  onSelectedItemIdChange: (value: string | number | (string | number)[] | null) => void;
+  onSelectedItemIdChange: (
+    value: string | number | (string | number)[] | null
+  ) => void;
   onClose: () => void;
   required?: boolean;
   closeOnSelect?: boolean;
@@ -42,11 +44,11 @@ export default function DropPickerPanel({
   onSelectedItemIdChange,
   onClose,
   closeOnSelect = true,
-  filterPlaceholder = 'Search',
-  widthClass = 'w-48',
-  iconWidthClass = 'w-5',
+  filterPlaceholder = "Search",
+  widthClass = "w-48",
+  iconWidthClass = "w-5",
   noOptionsText,
-  extraSearchFields = '',
+  extraSearchFields = "",
   showIconSlot = true,
   showInfo = false,
   showSearch = true,
@@ -60,61 +62,73 @@ export default function DropPickerPanel({
 }: DropPickerPanelProps) {
   const elRef = useRef<HTMLDivElement>(null);
   const searchFieldRef = useRef<HTMLInputElement>(null);
-  
-  const [searchVal, setSearchVal] = useState('');
+
+  const [searchVal, setSearchVal] = useState("");
 
   // Check if mouse is available (equivalent to useMediaQuery('(pointer: fine)'))
   const [isMouseAvailable, setIsMouseAvailable] = useState(true);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(pointer: fine)');
+    const mediaQuery = window.matchMedia("(pointer: fine)");
     setIsMouseAvailable(mediaQuery.matches);
-    
+
     const handleChange = (e: MediaQueryListEvent) => {
       setIsMouseAvailable(e.matches);
     };
-    
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
+
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
 
   // --- Handlers ---
-  const selectItem = useCallback((itemId: string | number, isFromCheckbox = false) => {
-    if (multiple) {
-      if (isFilter && !isFromCheckbox) {
-        onSelectedItemIdChange([itemId]);
-        onClose();
-        return;
-      }
-      
-      const currentSelected = Array.isArray(selectedItemId) 
-        ? selectedItemId 
-        : selectedItemId ? [selectedItemId] : [];
+  const selectItem = useCallback(
+    (itemId: string | number, isFromCheckbox = false) => {
+      if (multiple) {
+        if (isFilter && !isFromCheckbox) {
+          onSelectedItemIdChange([itemId]);
+          onClose();
+          return;
+        }
 
-      const index = currentSelected.indexOf(itemId);
-      if (index === -1) {
-        onSelectedItemIdChange([...currentSelected, itemId]);
+        const currentSelected = Array.isArray(selectedItemId)
+          ? selectedItemId
+          : selectedItemId
+          ? [selectedItemId]
+          : [];
+
+        const index = currentSelected.indexOf(itemId);
+        if (index === -1) {
+          onSelectedItemIdChange([...currentSelected, itemId]);
+        } else {
+          onSelectedItemIdChange(currentSelected.filter((id) => id !== itemId));
+        }
       } else {
-        onSelectedItemIdChange(currentSelected.filter((id) => id !== itemId));
+        onSelectedItemIdChange(itemId);
       }
-    } else {
-      onSelectedItemIdChange(itemId);
-    }
 
-    if (closeOnSelect && !multiple) onClose();
-  }, [multiple, isFilter, selectedItemId, onSelectedItemIdChange, onClose, closeOnSelect]);
+      if (closeOnSelect && !multiple) onClose();
+    },
+    [
+      multiple,
+      isFilter,
+      selectedItemId,
+      onSelectedItemIdChange,
+      onClose,
+      closeOnSelect,
+    ]
+  );
 
   // --- Computed values ---
   const filteredItems = useMemo(() => {
-    if (searchVal === '') return items;
+    if (searchVal === "") return items;
 
-    let fieldsToSearch = ['name'];
+    let fieldsToSearch = ["name"];
     if (items[0]?.firstName && items[0]?.lastName) {
-      fieldsToSearch.push('firstName', 'lastName');
+      fieldsToSearch.push("firstName", "lastName");
     }
     if (extraSearchFields) {
       fieldsToSearch = fieldsToSearch.concat(
-        extraSearchFields.split(',').map((field) => field.trim())
+        extraSearchFields.split(",").map((field) => field.trim())
       );
     }
 
@@ -148,84 +162,95 @@ export default function DropPickerPanel({
           />
         </div>
       )}
-      
+
       {filteredItems.length > 0 ? (
         <>
-          {showSearch && <div className="my-1 block border-t border-divider-hover" />}
+          {showSearch && (
+            <div className="my-1 block border-t border-divider-hover" />
+          )}
           <div
             className="flex flex-col gap-px overflow-y-auto text-nav"
             style={{ maxHeight: `${maxHeight}px` }}
           >
             {filteredItems.map((item, itemNo) => (
-              <div key={item.id} className="h-8 shrink-0 px-1">
-                <MenuItem>
-                  <div
-                    className="option sidebar-text group/status flex h-full cursor-pointer items-center gap-3 text-nowrap rounded-md pl-2 pr-3 text-main-unselected-text hover:bg-main-unselected-hover hover:text-main-text-hover"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      selectItem(item.id);
-                    }}
+              <MenuItem as="div" key={item.id} className="h-8 shrink-0 px-1">
+                <div
+                  className="option sidebar-text group/status flex h-full cursor-pointer items-center gap-3 text-nowrap rounded-md pl-2 pr-3 text-main-unselected-text hover:bg-main-unselected-hover hover:text-main-text-hover"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    selectItem(item.id);
+                  }}
+                >
+                  {isFilter && (
+                    <input
+                      checked={
+                        Array.isArray(selectedItemId) &&
+                        selectedItemId.includes(item.id)
+                      }
+                      type="checkbox"
+                      className="h-4 w-4 rounded bg-gray-100 cursor-pointer text-black focus:ring-black dark:bg-gray-700 dark:focus:ring-black"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        selectItem(item.id, true);
+                      }}
+                    />
+                  )}
+
+                  {showIconSlot && (
+                    <span
+                      className={`opacity-80 group-hover/status:opacity-100 ${
+                        iconWidthClass === "w-5" ? "w-5" : "w-10"
+                      } hover:brightness-90 dark:hover:brightness-125`}
+                    >
+                      {iconSlot
+                        ? iconSlot(item)
+                        : item.icon && <item.icon className="size-4" />}
+                    </span>
+                  )}
+
+                  <span
+                    className="grow overflow-hidden text-ellipsis"
+                    title={item.name}
                   >
-                    {isFilter && (
-                      <input
-                        checked={Array.isArray(selectedItemId) && selectedItemId.includes(item.id)}
-                        type="checkbox"
-                        className="h-4 w-4 rounded bg-gray-100 cursor-pointer text-black focus:ring-black dark:bg-gray-700 dark:focus:ring-black"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          selectItem(item.id, true);
-                        }}
-                      />
-                    )}
-                    
-                    {showIconSlot && (
-                      <span
-                        className={`opacity-80 group-hover/status:opacity-100 ${
-                          iconWidthClass === 'w-5' ? 'w-5' : 'w-10'
-                        } hover:brightness-90 dark:hover:brightness-125`}
-                      >
-                        {iconSlot ? iconSlot(item) : (
-                          item.icon && <item.icon className="size-4" />
-                        )}
+                    {textSlot ? textSlot(item) : item.name}
+                  </span>
+
+                  {(multiple
+                    ? Array.isArray(selectedItemId) &&
+                      selectedItemId.includes(item.id)
+                    : item.id === selectedItemId) &&
+                    !isFilter && <CheckIcon className="size-3 shrink-0" />}
+
+                  {showInfo && (
+                    <BaseTooltip
+                      contentSlot={
+                        tooltipTextSlot ? tooltipTextSlot(item) : undefined
+                      }
+                    >
+                      <InformationCircleIcon className="ml-2 size-4" />
+                    </BaseTooltip>
+                  )}
+
+                  {useItemIdForShortcut &&
+                    typeof item.id === "number" &&
+                    item.id < 10 && (
+                      <span className="shrink-0 text-xs opacity-50">
+                        {item.id}
                       </span>
                     )}
-                    
-                    <span className="grow overflow-hidden text-ellipsis" title={item.name}>
-                      {textSlot ? textSlot(item) : item.name}
+                  {!useItemIdForShortcut && itemNo < 9 && (
+                    <span className="shrink-0 text-xs opacity-50">
+                      {itemNo + 1}
                     </span>
-                    
-                    {(multiple 
-                      ? Array.isArray(selectedItemId) && selectedItemId.includes(item.id)
-                      : item.id === selectedItemId
-                    ) && !isFilter && (
-                      <CheckIcon className="size-3 shrink-0" />
-                    )}
-                    
-                    {showInfo && (
-                      <BaseTooltip contentSlot={tooltipTextSlot ? tooltipTextSlot(item) : undefined}>
-                        <InformationCircleIcon className="ml-2 size-4" />
-                      </BaseTooltip>
-                    )}
-
-                    {useItemIdForShortcut && typeof item.id === 'number' && item.id < 10 && (
-                      <span className="shrink-0 text-xs opacity-50">{item.id}</span>
-                    )}
-                    {!useItemIdForShortcut && itemNo < 9 && (
-                      <span className="shrink-0 text-xs opacity-50">{itemNo + 1}</span>
-                    )}
-                  </div>
-                </MenuItem>
-              </div>
+                  )}
+                </div>
+              </MenuItem>
             ))}
           </div>
         </>
       ) : (
-        noOptionsText && (
-          <div className="px-4">{noOptionsText}</div>
-        )
+        noOptionsText && <div className="px-4">{noOptionsText}</div>
       )}
     </div>
   );
 }
-
-
