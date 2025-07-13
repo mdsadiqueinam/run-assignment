@@ -22,7 +22,7 @@ export default function TimeZoneDropPicker({
 }: TimeZoneDropPickerProps) {
   if (canEdit) {
     return (
-      <Menu>
+      <Menu as="div">
         {({ open }) => (
           <>
             <MenuButton as="div">{children?.({ open })}</MenuButton>
