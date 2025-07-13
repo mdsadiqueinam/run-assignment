@@ -11,6 +11,7 @@ import authRouter from "./routes/auth.js";
 import signupRouter from "./routes/signup.js";
 import bodyParser from "body-parser";
 import multer from "multer";
+import { RedisStore } from "connect-redis";
 
 const version = 0.1;
 console.info("------------------------------------------------");

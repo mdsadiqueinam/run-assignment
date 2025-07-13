@@ -9,6 +9,7 @@ import { createClient } from "redis";
 import passport from "passport";
 import bodyParser from "body-parser";
 import cors from "cors";
+import { RedisStore } from "connect-redis";
 
 const version = 0.1;
 console.info("------------------------------------------------");

@@ -10,9 +10,9 @@
     "sqlite"
   ],
   "scripts": {
-    "start": "node index.js",
+    "start": "pnpm run with-env node index.js",
     "with-env": "dotenv -e ../../.env --",
-    "dev": "pnpm run with-env pnpm start"
+    "dev": "pnpm run with-env nodemon --watch index.js"
   },
   "dependencies": {
     "@azure/msal-node": "^3.6.0",
