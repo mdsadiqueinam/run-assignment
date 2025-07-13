@@ -6,10 +6,18 @@
 // biome-ignore lint: disable
 export {}
 declare global {
+  const BaseButton: typeof import('./app/components/common/BaseButton')['default']
+  const BaseTooltip: typeof import('./app/components/common/BaseTooltip')['default']
   const SignedInSetup: typeof import('./app/components/SignedInSetup')['default']
   const ThemeToggle: typeof import('./app/components/ThemeToggle')['default']
   const ToastContainer: typeof import('./app/components/ToastContainer')['default']
+  const baseButtonExample: typeof import('./app/components/common/BaseButton.example')['default']
+  const baseTooltipExample: typeof import('./app/components/common/BaseTooltip.example')['default']
   const createRef: typeof import('react')['createRef']
+  const createSearchRegex: typeof import('./app/utils/search')['createSearchRegex']
+  const createSearchTerms: typeof import('./app/utils/search')['createSearchTerms']
+  const escapeRegExp: typeof import('./app/utils/search')['escapeRegExp']
+  const filterItems: typeof import('./app/utils/search')['filterItems']
   const forwardRef: typeof import('react')['forwardRef']
   const havePermissionsChanged: typeof import('./app/hooks/useCurrentSession')['havePermissionsChanged']
   const hydrateSession: typeof import('./app/hooks/useCurrentSession')['hydrateSession']
@@ -17,6 +25,8 @@ declare global {
   const lazy: typeof import('react')['lazy']
   const logoutCurrentSession: typeof import('./app/hooks/useCurrentSession')['logoutCurrentSession']
   const memo: typeof import('react')['memo']
+  const sanitizeString: typeof import('./app/utils/search')['sanitizeString']
+  const signin: typeof import('./app/components/signin/signin')['default']
   const startTransition: typeof import('react')['startTransition']
   const useAntdTable: typeof import('ahooks')['useAntdTable']
   const useAsyncEffect: typeof import('ahooks')['useAsyncEffect']

@@ -35,7 +35,7 @@ export default defineConfig({
     tsconfigPaths(),
     AutoImport({
       imports: ["react", "react-router", "ahooks"],
-      dirs: ["app/components", "app/hooks", "app/utils"],
+      dirs: ["app/components/**", "app/hooks", "app/utils"],
     }),
   ],
   server: {
