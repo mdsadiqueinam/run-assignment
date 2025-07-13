@@ -24,7 +24,10 @@ export default function TimeZoneDropPicker({
         {({ open }) => (
           <>
             <MenuButton as="div">{children?.({ open })}</MenuButton>
-            <MenuItems className="relative rounded-xl border border-white/5 bg-white/5 p-1 text-sm/6 text-white transition duration-100 ease-out [--anchor-gap:--spacing(1)] focus:outline-none data-closed:scale-95 data-closed:opacity-0">
+            <MenuItems
+              anchor="bottom start"
+              className="relative rounded-xl border bg-main p-1 text-sm/6 transition duration-100 ease-out [--anchor-gap:--spacing(1)] focus:outline-none data-closed:scale-95 data-closed:opacity-0"
+            >
               <TimeZoneDropPickerPanel
                 timeZone={timeZoneId}
                 onTimeZoneChange={onTimeZoneIdChange}
