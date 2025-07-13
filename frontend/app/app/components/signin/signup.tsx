@@ -210,82 +210,84 @@ export default function Signup() {
             )}
 
             {/* Step 2: Timezone Selection */}
-            <div className="mt-4 w-full flex flex-col gap-5 items-center">
-              <h4 className="text-xl font-medium leading-8 tracking-tight text-center text-main-text mb-5">
-                Select your timezone
-              </h4>
+            {currentSession && (
+              <div className="mt-4 w-full flex flex-col gap-5 items-center">
+                <h4 className="text-xl font-medium leading-8 tracking-tight text-center text-main-text mb-5">
+                  Select your timezone
+                </h4>
 
-              <div className="flex flex-col gap-1">
-                <div className="block text-sm font-medium text-gray-300 mb-1">
-                  Timezone
+                <div className="flex flex-col gap-1">
+                  <div className="block text-sm font-medium text-gray-300 mb-1">
+                    Timezone
+                  </div>
+                  <TimeZoneDropPicker
+                    timeZoneId={selectedTimeZone}
+                    onTimeZoneIdChange={setSelectedTimeZone}
+                    widthClass="w-[300px]"
+                    customPlaceholder="Select Time zone..."
+                  >
+                    {({ open }) => (
+                      <BaseButton
+                        variant="transparent"
+                        className="min-h-[2.5rem] max-h-[3rem] rounded-md bg-dark-800 border border-black p-2 text-left text-main-text flex items-center justify-between overflow-hidden w-[300px]"
+                      >
+                        <span className="truncate flex-1">
+                          {formattedTimeZone}
+                        </span>
+                        <ChevronDownIcon
+                          className={`size-4 flex-shrink-0 ml-2 transition-transform duration-200 ${
+                            open ? "rotate-180" : ""
+                          }`}
+                        />
+                      </BaseButton>
+                    )}
+                  </TimeZoneDropPicker>
                 </div>
-                <TimeZoneDropPicker
-                  timeZoneId={selectedTimeZone}
-                  onTimeZoneIdChange={setSelectedTimeZone}
-                  widthClass="w-[300px]"
-                  customPlaceholder="Select Time zone..."
+
+                <BaseButton
+                  variant="primary"
+                  size="lg"
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className="mt-10 w-[240px] h-[50px] text-md font-bold"
                 >
-                  {({ open }) => (
-                    <BaseButton
-                      variant="transparent"
-                      className="min-h-[2.5rem] max-h-[3rem] rounded-md bg-dark-800 border border-black p-2 text-left text-main-text flex items-center justify-between overflow-hidden w-[300px]"
-                    >
-                      <span className="truncate flex-1">
-                        {formattedTimeZone}
-                      </span>
-                      <ChevronDownIcon
-                        className={`size-4 flex-shrink-0 ml-2 transition-transform duration-200 ${
-                          open ? "rotate-180" : ""
-                        }`}
-                      />
-                    </BaseButton>
+                  {isSubmitting ? (
+                    <>
+                      <span>Please wait...</span>
+                      <svg
+                        className="h-5 w-5 animate-spin ml-2"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                    </>
+                  ) : (
+                    <span>Complete Signup</span>
                   )}
-                </TimeZoneDropPicker>
-              </div>
+                </BaseButton>
 
-              <BaseButton
-                variant="primary"
-                size="lg"
-                type="button"
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="mt-10 w-[240px] h-[50px] text-md font-bold"
-              >
-                {isSubmitting ? (
-                  <>
-                    <span>Please wait...</span>
-                    <svg
-                      className="h-5 w-5 animate-spin ml-2"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                  </>
-                ) : (
-                  <span>Complete Signup</span>
+                {submitError && (
+                  <div className="mt-4 text-center text-sm text-red-500">
+                    {submitError}
+                  </div>
                 )}
-              </BaseButton>
-
-              {submitError && (
-                <div className="mt-4 text-center text-sm text-red-500">
-                  {submitError}
-                </div>
-              )}
-            </div>
+              </div>
+            )}
 
             <div className="mt-12 w-40 border-b border-divider"></div>
 
