@@ -69,14 +69,14 @@ export default function App() {
   const isUnsecuredPath = unsecuredPaths.includes(location.pathname);
 
   // If user is not authenticated and trying to access a secured route
-  // if (!session && !isUnsecuredPath) {
-  //   return <Navigate to="/signin" replace />;
-  // }
+  if (!session && !isUnsecuredPath) {
+    return <Navigate to="/signin" replace />;
+  }
 
-  // // If user is authenticated and trying to access unsecured routes, redirect to home
-  // if (session?.id && isUnsecuredPath) {
-  //   return <Navigate to="/home" replace />;
-  // }
+  // If user is authenticated and trying to access unsecured routes, redirect to home
+  if (session?.id && isUnsecuredPath) {
+    return <Navigate to="/home" replace />;
+  }
 
   return (
     <>
