@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import DropPickerPanel from './DropPickerPanel';
 
 interface TimeZoneDropPickerPanelProps {

@@ -194,7 +194,7 @@ export default function Signup() {
             )}
 
             {/* Step 2: Timezone Selection */}
-            {currentSession && (
+            {currentSession || true && (
               <div className="mt-4 w-full flex flex-col gap-5 items-center">
                 <h4 className="text-xl font-medium leading-8 tracking-tight text-center text-main-text mb-5">
                   Select your timezone

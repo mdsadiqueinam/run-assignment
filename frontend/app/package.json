@@ -9,7 +9,6 @@
     "typecheck": "react-router typegen && tsc"
   },
   "dependencies": {
-    "@headlessui-float/react": "0.15.0",
     "@headlessui/react": "2.2.4",
     "@heroicons/react": "2.2.0",
     "@react-router/fs-routes": "7.6.3",

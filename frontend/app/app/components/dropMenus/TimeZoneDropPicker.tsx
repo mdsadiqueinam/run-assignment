@@ -1,9 +1,11 @@
-import BasePopover from '../common/BasePopover';
-import TimeZoneDropPickerPanel from './TimeZoneDropPickerPanel';
+import { Menu, MenuButton, MenuItems } from "@headlessui/react";
+import TimeZoneDropPickerPanel from "./TimeZoneDropPickerPanel";
 
 interface TimeZoneDropPickerProps {
   timeZoneId: string | null;
-  onTimeZoneIdChange: (value: string | number | (string | number)[] | null) => void;
+  onTimeZoneIdChange: (
+    value: string | number | (string | number)[] | null
+  ) => void;
   canEdit?: boolean;
   widthClass?: string;
   customPlaceholder?: string;
@@ -14,26 +16,31 @@ export default function TimeZoneDropPicker({
   timeZoneId,
   onTimeZoneIdChange,
   canEdit = true,
-  widthClass = 'w-48',
-  customPlaceholder = '',
+  widthClass = "w-48",
+  customPlaceholder = "",
   children,
 }: TimeZoneDropPickerProps) {
   if (canEdit) {
     return (
-      <BasePopover
-        buttonSlot={({ open }) => children?.({ open }) || null}
-        contentSlot={({ open, close }) => 
-          open ? (
-            <TimeZoneDropPickerPanel
-              timeZone={timeZoneId}
-              onTimeZoneChange={onTimeZoneIdChange}
-              onClose={close}
-              widthClass={widthClass}
-              customPlaceholder={customPlaceholder}
-            />
-          ) : null
-        }
-      />
+      <Menu>
+        {({ open }) => (
+          <>
+            <MenuButton as="div">{children?.({ open })}</MenuButton>
+            <MenuItems
+              transition
+              className="relative rounded-xl border border-white/5 bg-white/5 p-1 text-sm/6 text-white transition duration-100 ease-out [--anchor-gap:--spacing(1)] focus:outline-none data-closed:scale-95 data-closed:opacity-0"
+            >
+              <TimeZoneDropPickerPanel
+                timeZone={timeZoneId}
+                onTimeZoneChange={onTimeZoneIdChange}
+                onClose={() => {}} // Menu will handle closing automatically
+                widthClass={widthClass}
+                customPlaceholder={customPlaceholder}
+              />
+            </MenuItems>
+          </>
+        )}
+      </Menu>
     );
   }
 

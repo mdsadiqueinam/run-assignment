@@ -21,7 +21,7 @@ export function useDarkMode() {
     if (theme === "dark") {
       root.classList.add("dark");
     } else {
-      root.classList.remove("dark");
+      root.classList.add("dark");
     }
   }, [theme]);
 

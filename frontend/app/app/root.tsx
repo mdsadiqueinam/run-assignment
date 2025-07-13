@@ -26,7 +26,7 @@ export const links: Route.LinksFunction = () => [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -53,29 +53,29 @@ export default function App() {
   // --- Hooks (equivalent to Vue's composables) ---
   const location = useLocation();
   const { session } = useCurrentSession();
-  
+
   // --- Handlers ---
   // None currently
-  
+
   // --- Lifecycle hooks & related ---
   // Additional lifecycle effects can be added here
-  
+
   // Define unsecured paths
-  const unsecuredPaths = ['/signin', '/signup', '/login'];
-  
+  const unsecuredPaths = ["/signin", "/signup", "/login"];
+
   // Check if current path is unsecured
   const isUnsecuredPath = unsecuredPaths.includes(location.pathname);
-  
+
   // If user is not authenticated and trying to access a secured route
   if (!session && !isUnsecuredPath) {
     return <Navigate to="/signin" replace />;
   }
-  
+
   // If user is authenticated and trying to access unsecured routes, redirect to home
   if (session && isUnsecuredPath) {
     return <Navigate to="/home" replace />;
   }
-  
+
   return (
     <>
       {/* Unsecured pages */}
