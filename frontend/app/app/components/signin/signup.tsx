@@ -24,7 +24,7 @@ export default function Signup() {
   const [_isLoading, _setIsLoading] = useState(false);
 
   // Computed values
-  const formattedTimeZone = (() => {
+  const formattedTimeZone = useMemo(() => {
     const gmtOffset = new Date()
       .toLocaleTimeString("en-us", {
         timeZone: selectedTimeZone,
@@ -34,7 +34,7 @@ export default function Signup() {
 
     const formattedTimeZoneName = selectedTimeZone.replace(/_/g, " ");
     return `${gmtOffset} – ${formattedTimeZoneName}`;
-  })();
+  }, [selectedTimeZone]);
 
   const googleAuthUrl = "/auth/login/federated/google";
 
