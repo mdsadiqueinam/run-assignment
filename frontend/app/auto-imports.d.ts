@@ -12,6 +12,8 @@ declare global {
   const DropPickerPanel: typeof import('./app/components/dropMenus/DropPickerPanel')['default']
   const KeyboardShortcutContextProvider: typeof import('./app/components/common/KeyboardShortcut')['KeyboardShortcutContextProvider']
   const KeyboardShortcutProvider: typeof import('./app/components/common/KeyboardShortcut')['KeyboardShortcutProvider']
+  const PermissionDropPicker: typeof import('./app/components/dropMenus/PermissionDropPicker')['default']
+  const PermissionDropPickerPanel: typeof import('./app/components/dropMenus/PermissionDropPickerPanel')['default']
   const PopOverPlacement: typeof import('./app/components/constant')['PopOverPlacement']
   const SignedInSetup: typeof import('./app/components/SignedInSetup')['default']
   const ThemeToggle: typeof import('./app/components/ThemeToggle')['default']

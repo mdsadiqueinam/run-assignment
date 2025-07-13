@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { XMarkIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 import { useNavigate, Link } from "react-router";
-import TimeZoneDropPicker from "../dropMenus/TimeZoneDropPicker";
 import BaseButton from "../common/BaseButton";
 
 export default function Signup() {
@@ -14,6 +13,9 @@ export default function Signup() {
   const { isDark: _isDark } = useDarkMode();
 
   // State
+  const [selectedPermission, setSelectedPermission] = useState<string | null>(
+    null
+  );
   const [selectedTimeZone, setSelectedTimeZone] = useState(
     Intl.DateTimeFormat().resolvedOptions().timeZone
   );
@@ -49,6 +51,7 @@ export default function Signup() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          permissionId: selectedPermission,
           timeZone: selectedTimeZone,
         }),
       });
@@ -214,12 +217,44 @@ export default function Signup() {
               </div>
             )}
 
-            {/* Step 2: Timezone Selection */}
+            {/* Step 2: Permission and Timezone Selection */}
             {currentSession && (
               <div className="mt-4 w-full flex flex-col gap-5 items-center">
                 <h4 className="text-xl font-medium leading-8 tracking-tight text-center text-main-text mb-5">
-                  Select your timezone
+                  Select your permission and timezone
                 </h4>
+
+                <div className="flex flex-col gap-1">
+                  <div className="block text-sm font-medium text-gray-300 mb-1">
+                    Permission
+                  </div>
+                  <PermissionDropPicker
+                    permissionId={selectedPermission}
+                    onPermissionIdChange={setSelectedPermission}
+                    widthClass="w-[300px]"
+                    customPlaceholder="Select Permission..."
+                  >
+                    {({ open }) => (
+                      <BaseButton
+                        variant="transparent"
+                        className="min-h-[2.5rem] max-h-[3rem] rounded-md bg-dark-800 border border-black p-2 text-left text-main-text flex items-center justify-between overflow-hidden w-[300px]"
+                      >
+                        <span className="truncate flex-1">
+                          {selectedPermission
+                            ? selectedPermission === "CLIENT"
+                              ? "Client"
+                              : "Doctor"
+                            : "Select Permission..."}
+                        </span>
+                        <ChevronDownIcon
+                          className={`size-4 flex-shrink-0 ml-2 transition-transform duration-200 ${
+                            open ? "rotate-180" : ""
+                          }`}
+                        />
+                      </BaseButton>
+                    )}
+                  </PermissionDropPicker>
+                </div>
 
                 <div className="flex flex-col gap-1">
                   <div className="block text-sm font-medium text-gray-300 mb-1">
@@ -254,7 +289,7 @@ export default function Signup() {
                   size="lg"
                   type="button"
                   onClick={handleSubmit}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !selectedPermission}
                   className="mt-10 w-[240px] h-[50px] text-md font-bold"
                 >
                   {isSubmitting ? (
