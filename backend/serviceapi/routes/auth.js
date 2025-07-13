@@ -68,7 +68,7 @@ function handleUserRedirection(req, res) {
     res.redirect(`${process.env.SERVER_URL}signup`);
   } else {
     // Redirect to the main dashboard after successful authentication
-    res.redirect(`${process.env.SERVER_URL}dashboard`);
+    res.redirect(`${process.env.SERVER_URL}home`);
   }
 }
 
@@ -215,7 +215,7 @@ router.get(
       req.session.save();
 
       // Redirect to the dashboard
-      return res.redirect(`${process.env.SERVER_URL}dashboard`);
+      return res.redirect(`${process.env.SERVER_URL}home`);
     }
 
     // Expect an email param

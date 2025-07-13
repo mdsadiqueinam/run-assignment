@@ -87,5 +87,5 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql VOLATILE COST 100;
 
-
-
+CREATE TRIGGER "update_lastsyncid_dateupdate_users" BEFORE INSERT OR UPDATE ON public.users
+    FOR EACH ROW EXECUTE PROCEDURE update_lastsyncid_dateupdate();

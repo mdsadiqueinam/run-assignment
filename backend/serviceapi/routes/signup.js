@@ -73,7 +73,7 @@ router.put(
           last_name,
           phone,
           time_zone,
-          permission_id,
+          user_permission_id,
           state_id,
           updated_at
         )
