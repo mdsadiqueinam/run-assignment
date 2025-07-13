@@ -33,7 +33,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body suppressHydrationWarning={true}>
+      <body
+        suppressHydrationWarning={true}
+        className=" flex h-screen select-none overscroll-none bg-main text-main-text"
+      >
         {children}
         <ScrollRestoration />
         <Scripts />
@@ -52,13 +55,16 @@ export function meta() {
 export default function App() {
   // --- Hooks (equivalent to Vue's composables) ---
   const location = useLocation();
-  const { session } = useCurrentSession();
+  const { session, init } = useCurrentSession();
 
   // --- Handlers ---
   // None currently
 
   // --- Lifecycle hooks & related ---
-  // Additional lifecycle effects can be added here
+  // Initialize session on component mount
+  useEffect(() => {
+    init();
+  }, [init]);
 
   // Define unsecured paths
   const unsecuredPaths = ["/signin", "/signup", "/login"];
@@ -86,7 +92,6 @@ export default function App() {
         <>
           <SignedInSetup />
           <ToastContainer />
-          <Outlet />
         </>
       )}
     </>
