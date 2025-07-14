@@ -34,15 +34,20 @@
  *    - Handles tab lock timeouts
  */
 
-import { ref, computed, watch } from 'vue';
-import { useObservable } from '@vueuse/rxjs';
-import { useLocalStorage } from '@vueuse/core';
-import relationships from 'dexie-relationships';
-import Dexie from 'dexie';
-import { io } from 'socket.io-client';
-import { v4 as uuidv4 } from 'uuid';
-import { Graffle } from 'graffle';
-import { currentSession, authToken, hydrateSession, havePermissionsChanged } from '@root/utils/useCurrentSession';
+import { ref, computed, watch } from "vue";
+import { useObservable } from "@vueuse/rxjs";
+import { useLocalStorage } from "@vueuse/core";
+import relationships from "dexie-relationships";
+import Dexie from "dexie";
+import { io } from "socket.io-client";
+import { v4 as uuidv4 } from "uuid";
+import { Graffle } from "graffle";
+import {
+  currentSession,
+  authToken,
+  hydrateSession,
+  havePermissionsChanged,
+} from "@root/utils/useCurrentSession";
 import {
   MODES,
   TAB_LOCK_KEY,
@@ -50,7 +55,7 @@ import {
   TAB_LOCK_INIT_TIMEOUT,
   MAX_RECENT_MUTATIONS,
   RECENT_MUTATION_TIMEOUT,
-} from './modules/constants';
+} from "./modules/constants";
 import {
   capitalizeFirstLetter,
   convertDates,
@@ -61,12 +66,12 @@ import {
   releaseTabLock,
   generateDbName,
   waitForTabLock,
-} from './modules/utils';
+} from "./modules/utils";
 
 const TAB_ID = `tab-${uuidv4()}`; // Unique identifier for this tab
 
 // Reactive state - reactive for external reporting
-const dataMode = ref('init'); // 'init', 'bootstrap-full', 'bootstrap-delta', 'real-time-init', 'real-time', 'offline'
+const dataMode = ref("init"); // 'init', 'bootstrap-full', 'bootstrap-delta', 'real-time-init', 'real-time', 'offline'
 const socketIsConnected = ref(false);
 const socketEventQueue = ref([]);
 const isProcessingTransactionQueue = ref(false);
@@ -76,8 +81,8 @@ const config = ref(null);
 // Internal State
 let errorHandling = null;
 let isSocketSetup = false;
-let socketAddr = '';
-let graphQLEndpoint = '/graphql';
+let socketAddr = "";
+let graphQLEndpoint = "/graphql";
 let graphQLHeaders = {};
 let companyId = null;
 let graffle;
@@ -85,13 +90,22 @@ let appCode = null; // Store the base database name for cleanup
 
 // We store recent mutations in localStorage so that any updates that come back in that originated from tabs
 // are not processed again - which can cause a bad user experience especially when the user is typing
-const recentMutations = useLocalStorage('recentMutations', []);
+const recentMutations = useLocalStorage("recentMutations", []);
 
 // Persistent State - used for testing
-const errorTestRandomAPIFailsPercent = useLocalStorage('errorTestRandomAPIFailsPercent', 0); // 0 = never fail, 50 = half the time, 100 = all the time
-const autoProcessTransactionQueue = useLocalStorage('autoProcessTransactionQueue', true);
-const autoProcessSocketEventQueue = useLocalStorage('autoProcessSocketEventQueue', true);
-const allowWebSocketUpdates = useLocalStorage('allowWebSocketUpdates', true);
+const errorTestRandomAPIFailsPercent = useLocalStorage(
+  "errorTestRandomAPIFailsPercent",
+  0
+); // 0 = never fail, 50 = half the time, 100 = all the time
+const autoProcessTransactionQueue = useLocalStorage(
+  "autoProcessTransactionQueue",
+  true
+);
+const autoProcessSocketEventQueue = useLocalStorage(
+  "autoProcessSocketEventQueue",
+  true
+);
+const allowWebSocketUpdates = useLocalStorage("allowWebSocketUpdates", true);
 
 // Retry Configuration
 const API_MAX_RETRY_ATTEMPTS = 3;
@@ -104,19 +118,23 @@ function getIndexesForDexie() {
       tableInfo?.customIndex ||
       Object.entries(tableInfo.fields)
         .filter(([, field]) => field.index)
-        .map(([fieldName, fieldInfo]) => (fieldInfo.reference ? `${fieldName} -> ${fieldInfo.reference}` : fieldName))
-        .join(',');
+        .map(([fieldName, fieldInfo]) =>
+          fieldInfo.reference
+            ? `${fieldName} -> ${fieldInfo.reference}`
+            : fieldName
+        )
+        .join(",");
     return indexes;
   }, {});
 }
 
 const syncId = computed({
   async get() {
-    const syncId = await sync.db.meta.get('syncId');
+    const syncId = await sync.db.meta.get("syncId");
     return syncId?.value || null;
   },
   set(newSyncId) {
-    sync.db.meta.put({ name: 'syncId', value: newSyncId });
+    sync.db.meta.put({ name: "syncId", value: newSyncId });
   },
 });
 
@@ -142,7 +160,7 @@ function logRecentMutation(transaction) {
 }
 
 async function logTransaction(tableName, action, obj) {
-  if (!obj.id) throw 'No id provided';
+  if (!obj.id) throw "No id provided";
 
   const tableInfo = config.value[tableName];
   const oldData = await sync.db[tableName].get(obj.id);
@@ -158,37 +176,42 @@ async function logTransaction(tableName, action, obj) {
   };
 
   switch (action) {
-    case 'create': {
+    case "create": {
       const data = Object.fromEntries(
         Object.keys(tableInfo.fields)
-          .filter((fieldName) => obj[fieldName] !== undefined && fieldName !== 'createdAt')
-          .map((fieldName) => [fieldName, obj[fieldName]]),
+          .filter(
+            (fieldName) =>
+              obj[fieldName] !== undefined && fieldName !== "createdAt"
+          )
+          .map((fieldName) => [fieldName, obj[fieldName]])
       );
       await createTransactionItem(data).enqueue();
       break;
     }
 
-    case 'update': {
+    case "update": {
       const data = {};
       for (const [fieldName, fieldInfo] of Object.entries(tableInfo.fields)) {
         const newVal = obj[fieldName];
         const oldVal = oldData[fieldName];
 
         const hasChanges =
-          newVal instanceof Date && oldVal instanceof Date ? newVal.getTime() !== oldVal.getTime() : newVal !== oldVal;
+          newVal instanceof Date && oldVal instanceof Date
+            ? newVal.getTime() !== oldVal.getTime()
+            : newVal !== oldVal;
 
         if (hasChanges) {
           data[fieldName] = newVal;
         }
       }
 
-      if (Object.keys(data).length === 0) throw 'No changes detected';
+      if (Object.keys(data).length === 0) throw "No changes detected";
 
       await createTransactionItem(data, oldData).enqueue();
       break;
     }
 
-    case 'delete': {
+    case "delete": {
       await createTransactionItem({}, oldData).enqueue();
       break;
     }
@@ -200,7 +223,7 @@ async function logTransaction(tableName, action, obj) {
 
 async function processNextTransactionInQueue() {
   if (!acquireTabLock(TAB_ID, TAB_LOCK_KEY, TAB_LOCK_TIMEOUT)) {
-    console.log('Another tab is processing the queue.');
+    console.log("Another tab is processing the queue.");
     return;
   }
 
@@ -227,25 +250,27 @@ async function processNextTransactionInQueue() {
 
     nextTransaction = queue[0];
     if (!nextTransaction?.table || !nextTransaction?.action) {
-      console.error('Invalid transaction format:', nextTransaction);
+      console.error("Invalid transaction format:", nextTransaction);
       await sync.db.transactionQueue.delete(nextTransaction.id);
       return;
     }
 
-    const singleObjectName = getNameForSingleObjectFromTableName(nextTransaction.table);
+    const singleObjectName = getNameForSingleObjectFromTableName(
+      nextTransaction.table
+    );
     const singleObjectNameCapitalized = capitalizeFirstLetter(singleObjectName);
-    let mutationName = '';
-    let inputBlock = '';
+    let mutationName = "";
+    let inputBlock = "";
 
     // Build GraphQL mutation based on action type
     switch (nextTransaction.action) {
-      case 'create':
+      case "create":
         mutationName = `${nextTransaction.action}${singleObjectNameCapitalized}`;
         inputBlock = `input: {
         ${singleObjectName}: {
           ${Object.entries(nextTransaction.data)
             .map(([key, value]) => `${key}: ${dbFormat(key, value)}`)
-            .join(', ')}
+            .join(", ")}
           }
         }`;
 
@@ -253,14 +278,14 @@ async function processNextTransactionInQueue() {
         logRecentMutation(nextTransaction);
         break;
 
-      case 'update':
+      case "update":
         mutationName = `${nextTransaction.action}${singleObjectNameCapitalized}`;
         inputBlock = `input: {
         id: \"${nextTransaction.objectId}\",
         patch: {
           ${Object.entries(nextTransaction.data)
             .map(([key, value]) => `${key}: ${dbFormat(key, value)}`)
-            .join(', ')}
+            .join(", ")}
           }
         }`;
 
@@ -268,7 +293,7 @@ async function processNextTransactionInQueue() {
         logRecentMutation(nextTransaction);
         break;
 
-      case 'delete':
+      case "delete":
         mutationName = `${nextTransaction.action}${singleObjectNameCapitalized}`;
         inputBlock = `input: {
           id: \"${nextTransaction.objectId}\"
@@ -282,7 +307,7 @@ async function processNextTransactionInQueue() {
     // Simulate errors for testing
     if (Number(errorTestRandomAPIFailsPercent.value) > 0) {
       if (Math.random() * 100 < Number(errorTestRandomAPIFailsPercent.value)) {
-        inputBlock += '-FAIL-TEST-';
+        inputBlock += "-FAIL-TEST-";
       }
     }
 
@@ -308,28 +333,31 @@ async function processNextTransactionInQueue() {
         // CURRENT USER PERMISSIONS CHANGE CHECK
         // If the current user has been affected, we need to hydrate their permission
         const isCurrentUserAffected =
-          (nextTransaction.table === 'users' && nextTransaction.data.id === currentSession.value?.userId) ||
-          (nextTransaction.table === 'usersOnTeams' &&
+          (nextTransaction.table === "users" &&
+            nextTransaction.data.id === currentSession.value?.userId) ||
+          (nextTransaction.table === "usersOnTeams" &&
             (nextTransaction.data?.userId === currentSession.value?.userId ||
-              nextTransaction.oldData?.userId === currentSession.value?.userId));
+              nextTransaction.oldData?.userId ===
+                currentSession.value?.userId));
         if (isCurrentUserAffected) {
-          const doFullLoad = nextTransaction.table === 'usersOnTeams';
+          const doFullLoad = nextTransaction.table === "usersOnTeams";
           onChangeCurrentUserPermissionsOrTeams(doFullLoad);
         }
       } else {
         nextTransaction.rollback();
-        const errMsg = result?.errors?.[0]?.message || 'Error processing transaction';
+        const errMsg =
+          result?.errors?.[0]?.message || "Error processing transaction";
         errorHandling?.setErrorMessage(errMsg);
       }
     } catch (error) {
-      console.error('error with transaction', nextTransaction, error);
+      console.error("error with transaction", nextTransaction, error);
       nextTransaction.rollback();
-      const errMsg = 'Error processing transaction';
+      const errMsg = "Error processing transaction";
       errorHandling?.setErrorMessage(errMsg);
     }
   } catch (error) {
     nextTransaction.rollback();
-    errorHandling?.setErrorMessage('Failed to process transaction queue');
+    errorHandling?.setErrorMessage("Failed to process transaction queue");
   } finally {
     isProcessingTransactionQueue.value = false;
     releaseTabLock(TAB_ID, TAB_LOCK_KEY);
@@ -341,7 +369,10 @@ async function processNextTransactionInQueue() {
   }
 }
 
-async function getBootstrapData({ mode = MODES.BOOTSTRAP_FULL, filter = '' } = {}) {
+async function getBootstrapData({
+  mode = MODES.BOOTSTRAP_FULL,
+  filter = "",
+} = {}) {
   let result;
   const fd = config.value;
   const tableNames = Object.keys(fd);
@@ -350,7 +381,7 @@ async function getBootstrapData({ mode = MODES.BOOTSTRAP_FULL, filter = '' } = {
   let query = tableNames
     .map((table) => {
       const fields = fd[table].fields;
-      const fieldsQuery = Object.keys(fields).join('\n\t\t\t');
+      const fieldsQuery = Object.keys(fields).join("\n\t\t\t");
       return `
         ${table} ${filter} {
           nodes {
@@ -359,7 +390,7 @@ async function getBootstrapData({ mode = MODES.BOOTSTRAP_FULL, filter = '' } = {
           }
         }`;
     })
-    .join('\n');
+    .join("\n");
 
   try {
     result = await graffle.gql`query {
@@ -370,26 +401,28 @@ async function getBootstrapData({ mode = MODES.BOOTSTRAP_FULL, filter = '' } = {
       }`.send();
     // Check for undefined result which indicates a 401 unauthorized
     if (result === undefined) {
-      throw new Error('Unauthorized: 401 error detected. Please check your authentication credentials.');
+      throw new Error(
+        "Unauthorized: 401 error detected. Please check your authentication credentials."
+      );
     }
   } catch (error) {
-    console.error('Error getting bootstrap data:', error);
+    console.error("Error getting bootstrap data:", error);
     dataMode.value = MODES.ERROR_LOADING_BOOTSTRAP;
     return;
   }
 
   // Check for and report errors
   if (result?.errors) {
-    console.error('Errors found in bootstrap data:', result.errors);
-    errorHandling?.setErrorMessage('Errors found in bootstrap data');
+    console.error("Errors found in bootstrap data:", result.errors);
+    errorHandling?.setErrorMessage("Errors found in bootstrap data");
     return;
   }
 
   // Needed if site not found
   if (!result.sync?.syncId) {
-    console.error('No syncId found in bootstrap data');
-    errorHandling?.setErrorMessage('No syncId found in bootstrap data');
-    window.location = '/signin';
+    console.error("No syncId found in bootstrap data");
+    errorHandling?.setErrorMessage("No syncId found in bootstrap data");
+    window.location = "/signin";
     return;
   }
 
@@ -403,19 +436,31 @@ async function getBootstrapData({ mode = MODES.BOOTSTRAP_FULL, filter = '' } = {
     if (mode === MODES.BOOTSTRAP_FULL) {
       await sync.db[table].bulkPut(nodes);
       const allNewIds = nodes.map((o) => o.id);
-      const allOldIdsThatDontMatch = await sync.db[table].where('id').noneOf(allNewIds).primaryKeys();
+      const allOldIdsThatDontMatch = await sync.db[table]
+        .where("id")
+        .noneOf(allNewIds)
+        .primaryKeys();
       await sync.db[table].bulkDelete(allOldIdsThatDontMatch);
-    } else if (mode === 'updates') {
+    } else if (mode === "updates") {
       await sync.db[table].bulkDelete(
-        nodes.filter((node) => node.stateId === 'DELETED' || node.stateId === 'ARCHIVED').map((node) => node.id),
+        nodes
+          .filter(
+            (node) => node.stateId === "DELETED" || node.stateId === "ARCHIVED"
+          )
+          .map((node) => node.id)
       );
       // Update nodes
       try {
-        await sync.db[table].bulkPut(nodes.filter((node) => node.stateId === 'ACTIVE'));
+        await sync.db[table].bulkPut(
+          nodes.filter((node) => node.stateId === "ACTIVE")
+        );
       } catch (error) {
         // If bulkPut fails, insert one by one
-        console.error('Error executing bulkPut, reverting to one-by-one', error);
-        for (const node of nodes.filter((node) => node.stateId === 'ACTIVE')) {
+        console.error(
+          "Error executing bulkPut, reverting to one-by-one",
+          error
+        );
+        for (const node of nodes.filter((node) => node.stateId === "ACTIVE")) {
           await sync.db[table].put(node);
         }
       }
@@ -424,7 +469,7 @@ async function getBootstrapData({ mode = MODES.BOOTSTRAP_FULL, filter = '' } = {
 
   // Update the syncId and switch data mode (this is local only)
   await sync.db.meta.put({
-    name: 'syncId',
+    name: "syncId",
     value: result.sync.syncId,
   });
 
@@ -437,7 +482,9 @@ async function retryOperation(operation, retries = API_MAX_RETRY_ATTEMPTS) {
       return await operation();
     } catch (error) {
       if (i === retries - 1) throw error;
-      await new Promise((resolve) => setTimeout(resolve, API_RETRY_DELAY_MS * (i + 1)));
+      await new Promise((resolve) =>
+        setTimeout(resolve, API_RETRY_DELAY_MS * (i + 1))
+      );
     }
   }
 }
@@ -449,7 +496,7 @@ async function getLatestLastSyncId() {
         sync(companyId: "${companyId}") {
           syncId
         }
-      }`.send(),
+      }`.send()
     );
     const latestLastSyncId = result.sync.syncId;
 
@@ -457,13 +504,16 @@ async function getLatestLastSyncId() {
 
     // Debugging issue in production where localSyncId is null
     if (!localSyncId) {
-      console.error('No local sync ID found, skipping bootstrap.', typeof localSyncId);
+      console.error(
+        "No local sync ID found, skipping bootstrap.",
+        typeof localSyncId
+      );
     }
 
     if (localSyncId && localSyncId !== latestLastSyncId) {
       // Load changes from the server
       await getBootstrapData({
-        mode: 'updates',
+        mode: "updates",
         filter: `(filter: { syncId: { greaterThan: ${localSyncId}, lessThanOrEqualTo: ${latestLastSyncId} } })`,
       });
     } else {
@@ -474,8 +524,8 @@ async function getLatestLastSyncId() {
     // Process any remaining transactions
     processNextTransactionInQueue();
   } catch (error) {
-    console.error('Failed to get latest sync ID after retries:', error);
-    errorHandling?.setErrorMessage('Failed to sync with server');
+    console.error("Failed to get latest sync ID after retries:", error);
+    errorHandling?.setErrorMessage("Failed to sync with server");
     dataMode.value = MODES.OFFLINE;
   }
 }
@@ -503,38 +553,39 @@ async function processNextSocketEventInQueue() {
   const localSyncId = await syncId.value;
 
   // Ignore events already covered by the bootstrap
-  if (event.data.syncId <= localSyncId && !event?.command === 'delete') {
+  if (event.data.syncId <= localSyncId && !event?.command === "delete") {
     isProcessingSocketEventQueue.value = false;
     return;
   }
 
   let existingObject;
   try {
-    if (event?.command === 'delete') {
+    if (event?.command === "delete") {
       existingObject = await sync.db[event.table].get(event.data.id);
       if (existingObject) await sync.db[event.table].delete(event.data.id);
     } else {
-      if (typeof event.data.syncId !== 'number') {
-        throw new Error('syncId is not a number');
+      if (typeof event.data.syncId !== "number") {
+        throw new Error("syncId is not a number");
       }
 
       // Handle insert or update commands
-      if (event.command === 'insert') {
+      if (event.command === "insert") {
         try {
           await sync.db[event.table].add({ ...event.data }); // Spread to avoid proxy issues with Dexie
         } catch (e) {
-          if (e.name === 'ConstraintError') {
+          if (e.name === "ConstraintError") {
             await sync.db[event.table].update(event.data.id, event.data);
           }
         }
       } else {
         // Update existing records only
         existingObject = await sync.db[event.table].get(event.data.id);
-        if (existingObject) await sync.db[event.table].update(event.data.id, event.data);
+        if (existingObject)
+          await sync.db[event.table].update(event.data.id, event.data);
       }
     }
   } catch (error) {
-    console.error('Error processing socket event:', error);
+    console.error("Error processing socket event:", error);
   } finally {
     isProcessingSocketEventQueue.value = false;
 
@@ -547,11 +598,13 @@ async function processNextSocketEventInQueue() {
   // CURRENT USER PERMISSIONS CHANGE CHECK
   // If the current user has been affected, we need to hydrate their permission
   const isCurrentUserAffected =
-    (event.table === 'users' && event.data.id === currentSession.value?.userId) ||
-    (event.table === 'usersOnTeams' &&
-      (event.data?.userId === currentSession.value?.userId || existingObject?.userId === currentSession.value?.userId));
+    (event.table === "users" &&
+      event.data.id === currentSession.value?.userId) ||
+    (event.table === "usersOnTeams" &&
+      (event.data?.userId === currentSession.value?.userId ||
+        existingObject?.userId === currentSession.value?.userId));
   if (isCurrentUserAffected) {
-    const doFullReload = event.table === 'usersOnTeams';
+    const doFullReload = event.table === "usersOnTeams";
     onChangeCurrentUserPermissionsOrTeams(doFullReload);
   }
 }
@@ -559,7 +612,9 @@ async function processNextSocketEventInQueue() {
 function initRealtimeMode() {
   // If socket is already set up, update the data mode and process events
   if (isSocketSetup) {
-    dataMode.value = socketIsConnected.value ? MODES.REAL_TIME : MODES.REAL_TIME_DISCONNECTED;
+    dataMode.value = socketIsConnected.value
+      ? MODES.REAL_TIME
+      : MODES.REAL_TIME_DISCONNECTED;
 
     if (autoProcessSocketEventQueue.value) {
       processNextSocketEventInQueue();
@@ -584,21 +639,24 @@ function initRealtimeMode() {
   });
 
   // Handle socket connection events
-  socket.on('connect', () => {
+  socket.on("connect", () => {
     socketIsConnected.value = true;
-    dataMode.value = [MODES.REAL_TIME_INIT, MODES.REAL_TIME_DISCONNECTED].includes(dataMode.value)
+    dataMode.value = [
+      MODES.REAL_TIME_INIT,
+      MODES.REAL_TIME_DISCONNECTED,
+    ].includes(dataMode.value)
       ? MODES.BOOTSTRAP_DELTA
       : MODES.REAL_TIME;
   });
 
-  socket.on('disconnect', () => {
+  socket.on("disconnect", () => {
     socketIsConnected.value = false;
     dataMode.value = MODES.REAL_TIME_DISCONNECTED;
   });
 
   // Listen for socket events
   socket.onAny((eventName, ...events) => {
-    if (eventName !== 'syncEvent') return;
+    if (eventName !== "syncEvent") return;
     events.forEach((event) => {
       if (!event.data?.id || !event.table) return; // hardening
 
@@ -612,31 +670,42 @@ function initRealtimeMode() {
       // This prevents bad experience using the UI especially when the user is typing
       const isRecentMutation = recentMutations.value.some((mutation) =>
         (() => {
-          const eventCommand = event.command === 'insert' ? 'create' : event.command;
+          const eventCommand =
+            event.command === "insert" ? "create" : event.command;
           const actionMatch = mutation.action === eventCommand;
           const tableMatch = mutation.table === snakeToCamel(event.table);
           const idMatch = mutation.objectId === event.data.id;
           const hasUpdatedAt = event.data.updatedAt instanceof Date;
-          const isRecent = mutation.timestamp > new Date().getTime() - RECENT_MUTATION_TIMEOUT;
-          const dataMatches = Object.entries(mutation.data).every(([key, value]) => {
-            const matches =
-              value instanceof Date && event.data[key] instanceof Date
-                ? value.getTime() === event.data[key].getTime()
-                : event.data[key] === value;
-            return matches;
-          });
-          return actionMatch && tableMatch && idMatch && hasUpdatedAt && isRecent && dataMatches;
-        })(),
+          const isRecent =
+            mutation.timestamp > new Date().getTime() - RECENT_MUTATION_TIMEOUT;
+          const dataMatches = Object.entries(mutation.data).every(
+            ([key, value]) => {
+              const matches =
+                value instanceof Date && event.data[key] instanceof Date
+                  ? value.getTime() === event.data[key].getTime()
+                  : event.data[key] === value;
+              return matches;
+            }
+          );
+          return (
+            actionMatch &&
+            tableMatch &&
+            idMatch &&
+            hasUpdatedAt &&
+            isRecent &&
+            dataMatches
+          );
+        })()
       );
 
       // Exit if this event comes from us
       if (isRecentMutation) {
         if (import.meta.env.DEV) {
-          console.log('Skipping socket event that originated from us', event);
+          console.log("Skipping socket event that originated from us", event);
         }
         return;
       } else if (import.meta.env.DEV) {
-        console.log('Processing socket event', event);
+        console.log("Processing socket event", event);
       }
 
       // Process the event
@@ -665,7 +734,7 @@ function initRealtimeMode() {
 
 async function checkRequiredAndAddDefaults(tableDef, _this) {
   for (const [fieldName, fieldInfo] of Object.entries(tableDef.fields)) {
-    if (fieldName === 'id') continue;
+    if (fieldName === "id") continue;
 
     const fieldVal = _this[fieldName];
     if (fieldVal !== undefined && fieldVal !== null) continue;
@@ -682,12 +751,12 @@ async function checkRequiredAndAddDefaults(tableDef, _this) {
 
     if (!fieldInfo?.required) continue;
 
-    if (fieldName === 'createdAt') {
+    if (fieldName === "createdAt") {
       _this.createdAt = new Date();
       continue;
     }
 
-    if (fieldName === 'companyId') {
+    if (fieldName === "companyId") {
       _this.companyId = companyId;
       continue;
     }
@@ -721,25 +790,27 @@ function setupObjectClasses() {
     await sync.db.transactionQueue.delete(this.id);
     // Instant rollback
     switch (this.action) {
-      case 'create':
+      case "create":
         await sync.db[this.table].delete(this.objectId);
         break;
-      case 'update':
+      case "update":
         await sync.db[this.table].update(this.objectId, this.oldData);
         break;
-      case 'delete':
+      case "delete":
         await sync.db[this.table].add({ ...this.oldData });
         break;
     }
   };
   sync.db.transactionQueue.mapToClass(TransactionQueueItemClass);
-  sync.db['TransactionQueueItem'] = TransactionQueueItemClass;
+  sync.db["TransactionQueueItem"] = TransactionQueueItemClass;
 
   const tables = config.value;
   const tableNames = Object.keys(tables);
   for (const tableName of tableNames) {
     const tableDef = tables[tableName];
-    let tableClassName = capitalizeFirstLetter(getNameForSingleObjectFromTableName(tableName));
+    let tableClassName = capitalizeFirstLetter(
+      getNameForSingleObjectFromTableName(tableName)
+    );
     var tableClass = Dexie.defineClass(tableDef);
 
     var genFn = function (tableName, tableDef, fn) {
@@ -748,47 +819,69 @@ function setupObjectClasses() {
       };
     };
 
-    tableClass.prototype.create = genFn(tableName, tableDef, async function (tableName, tableDef, _this) {
-      // Add defaults and check required
-      if (!(await checkRequiredAndAddDefaults(tableDef, _this))) return false;
-      // Log the transaction
-      await logTransaction(tableName, 'create', _this);
-      // Reflect changes instantly - add us to indexedDb
-      await sync.db[tableName].add(_this);
-      return true;
-    });
-    tableClass.prototype.save = genFn(tableName, tableDef, async function (tableName, tableDef, _this) {
-      // Add defaults and check required
-      if (!(await checkRequiredAndAddDefaults(tableDef, _this))) return false;
-      // Log the transaction
-      await logTransaction(tableName, 'update', _this);
-      // Reflect changes instantly - update in indexedDb - must be after logTransaction
-      await sync.db[tableName].update(_this.id, _this);
-      return true;
-    });
+    tableClass.prototype.create = genFn(
+      tableName,
+      tableDef,
+      async function (tableName, tableDef, _this) {
+        // Add defaults and check required
+        if (!(await checkRequiredAndAddDefaults(tableDef, _this))) return false;
+        // Log the transaction
+        await logTransaction(tableName, "create", _this);
+        // Reflect changes instantly - add us to indexedDb
+        await sync.db[tableName].add(_this);
+        return true;
+      }
+    );
+    tableClass.prototype.save = genFn(
+      tableName,
+      tableDef,
+      async function (tableName, tableDef, _this) {
+        // Add defaults and check required
+        if (!(await checkRequiredAndAddDefaults(tableDef, _this))) return false;
+        // Log the transaction
+        await logTransaction(tableName, "update", _this);
+        // Reflect changes instantly - update in indexedDb - must be after logTransaction
+        await sync.db[tableName].update(_this.id, _this);
+        return true;
+      }
+    );
     // This delete is a soft delete by default
-    tableClass.prototype.softDelete = genFn(tableName, tableDef, async function (tableName, tableDef, _this) {
-      if (_this.stateId === undefined) throw 'stateId not supported for soft delete. Use delete().';
-      _this.stateId = 'DELETED';
-      // Log the transaction
-      await logTransaction(tableName, 'update', _this);
-      // Reflect changes instantly - update in indexedDb - must be after logTransaction
-      await sync.db[tableName].update(_this.id, _this);
-    });
-    tableClass.prototype.restore = genFn(tableName, tableDef, async function (tableName, tableDef, _this) {
-      if (_this.stateId === undefined) throw 'stateId not supported for restore.';
-      _this.stateId = 'ACTIVE';
-      // Log the transaction
-      await logTransaction(tableName, 'update', _this);
-      // Reflect changes instantly - update in indexedDb - must be after logTransaction
-      await sync.db[tableName].update(_this.id, _this);
-    });
-    tableClass.prototype.delete = genFn(tableName, tableDef, async function (tableName, tableDef, _this) {
-      // Log the transaction
-      await logTransaction(tableName, 'delete', _this);
-      // Reflect changes instantly - take us out of the indexedDb
-      await sync.db[tableName].delete(_this.id);
-    });
+    tableClass.prototype.softDelete = genFn(
+      tableName,
+      tableDef,
+      async function (tableName, tableDef, _this) {
+        if (_this.stateId === undefined)
+          throw "stateId not supported for soft delete. Use delete().";
+        _this.stateId = "DELETED";
+        // Log the transaction
+        await logTransaction(tableName, "update", _this);
+        // Reflect changes instantly - update in indexedDb - must be after logTransaction
+        await sync.db[tableName].update(_this.id, _this);
+      }
+    );
+    tableClass.prototype.restore = genFn(
+      tableName,
+      tableDef,
+      async function (tableName, tableDef, _this) {
+        if (_this.stateId === undefined)
+          throw "stateId not supported for restore.";
+        _this.stateId = "ACTIVE";
+        // Log the transaction
+        await logTransaction(tableName, "update", _this);
+        // Reflect changes instantly - update in indexedDb - must be after logTransaction
+        await sync.db[tableName].update(_this.id, _this);
+      }
+    );
+    tableClass.prototype.delete = genFn(
+      tableName,
+      tableDef,
+      async function (tableName, tableDef, _this) {
+        // Log the transaction
+        await logTransaction(tableName, "delete", _this);
+        // Reflect changes instantly - take us out of the indexedDb
+        await sync.db[tableName].delete(_this.id);
+      }
+    );
     sync.db[tableName].mapToClass(tableClass);
     sync.db[tableClassName] = tableClass;
   }
@@ -796,13 +889,24 @@ function setupObjectClasses() {
 
 // Setup watchers
 function setupWatchers() {
-  sync.db.liveTransactionQueue = useObservable(Dexie.liveQuery(() => sync.db.transactionQueue.toArray()));
+  sync.db.liveTransactionQueue = useObservable(
+    Dexie.liveQuery(() => sync.db.transactionQueue.toArray())
+  );
 
   const autoProcessWatchers = [
-    { source: sync.db.liveTransactionQueue, handler: processNextTransactionInQueue },
-    { source: autoProcessTransactionQueue, handler: (isOn) => isOn && processNextTransactionInQueue() },
+    {
+      source: sync.db.liveTransactionQueue,
+      handler: processNextTransactionInQueue,
+    },
+    {
+      source: autoProcessTransactionQueue,
+      handler: (isOn) => isOn && processNextTransactionInQueue(),
+    },
     { source: socketEventQueue.value, handler: processNextSocketEventInQueue },
-    { source: autoProcessSocketEventQueue, handler: (isOn) => isOn && processNextSocketEventInQueue() },
+    {
+      source: autoProcessSocketEventQueue,
+      handler: (isOn) => isOn && processNextSocketEventInQueue(),
+    },
   ];
 
   autoProcessWatchers.forEach(({ source, handler }) => watch(source, handler));
@@ -829,11 +933,17 @@ async function init(options = {}) {
 
     // Remember the logged in user
     if (currentSession.value === null || !currentSession.value?.email?.length) {
-      throw new Error('User not logged in');
+      throw new Error("User not logged in");
     }
 
     // Ensure required options are provided
-    const requiredOptions = ['socketAddr', 'graphQLEndpoint', 'graphQLHeaders', 'config', 'companyId'];
+    const requiredOptions = [
+      "socketAddr",
+      "graphQLEndpoint",
+      "graphQLHeaders",
+      "config",
+      "companyId",
+    ];
     requiredOptions.forEach((key) => {
       if (options[key] === undefined) throw new Error(`${key} is required`);
     });
@@ -860,13 +970,15 @@ async function init(options = {}) {
       if (timeSinceLastLoad < 5000) {
         // Less than 5 seconds
         doFullLoad = true;
-        console.info('FULL RELOAD REQUESTED (double reload in < 5 secs)');
+        console.info("FULL RELOAD REQUESTED (double reload in < 5 secs)");
       }
     }
 
     // Check if the table structure has changed based on a hash of the table data, do full reload if so
     const configHashKey = `configHash_${companyId}_${currentSession.value?.userId}`;
-    const currentTableDataHash = await computeSHA256Hash(JSON.stringify(config.value));
+    const currentTableDataHash = await computeSHA256Hash(
+      JSON.stringify(config.value)
+    );
     const previousTableDataHash = localStorage.getItem(configHashKey);
     if (currentTableDataHash !== previousTableDataHash) {
       doFullLoad = true; // Trigger a full reload
@@ -889,8 +1001,8 @@ async function init(options = {}) {
 
     // Configure the Dexie database schema
     sync.db.version(1).stores({
-      meta: 'name, value',
-      transactionQueue: '++id, table, action, objectId, data, oldData',
+      meta: "name, value",
+      transactionQueue: "++id, table, action, objectId, data, oldData",
       ...getIndexesForDexie(),
     });
 
@@ -922,10 +1034,10 @@ async function init(options = {}) {
     });
 
     // Save the current load time and set the data mode
-    localStorage.setItem('lastLoadTime', currentLoadTime);
+    localStorage.setItem("lastLoadTime", currentLoadTime);
     dataMode.value = doFullLoad ? MODES.BOOTSTRAP_FULL : MODES.BOOTSTRAP_DELTA;
   } catch (error) {
-    console.error('Initialization failed:', error);
+    console.error("Initialization failed:", error);
   } finally {
     // Release tab lock
     releaseTabLock(TAB_ID, TAB_LOCK_KEY);
@@ -965,25 +1077,29 @@ async function onChangeCurrentUserPermissionsOrTeams(doFullReload = false) {
 async function computeSHA256Hash(data) {
   const encoder = new TextEncoder();
   const dataBuffer = encoder.encode(data);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", dataBuffer);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map((byte) => byte.toString(16).padStart(2, '0')).join('');
+  const hashHex = hashArray
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
   return hashHex;
 }
 
 async function hardReload() {
   // Delete all IndexedDB databases that start with the base database name
-  if (appCode && 'databases' in indexedDB) {
+  if (appCode && "databases" in indexedDB) {
     try {
       const databases = await indexedDB.databases();
-      const databasesToDelete = databases.filter((db) => db.name && db.name.startsWith(appCode));
+      const databasesToDelete = databases.filter(
+        (db) => db.name && db.name.startsWith(appCode)
+      );
 
       for (const db of databasesToDelete) {
         await Dexie.delete(db.name);
         console.log(`Deleted database: ${db.name}`);
       }
     } catch (error) {
-      console.error('Error deleting databases:', error);
+      console.error("Error deleting databases:", error);
     }
   }
 

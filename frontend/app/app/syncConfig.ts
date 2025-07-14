@@ -1,4 +1,7 @@
 "use strict";
+
+import type { SyncConfigData } from "./syncEngine/engine";
+
 /*
 Indexes usually get created for you automatically based on the index flag but you can customise the indexes
 when you need something more complex with "customIndex".
@@ -25,7 +28,7 @@ function deepFreeze(obj: Record<string, any>): Record<string, any> {
   return Object.freeze(obj);
 }
 
-const syncConfigData = {
+const syncConfigData: SyncConfigData = {
   users: {
     fields: {
       id: { index: true, type: String },
