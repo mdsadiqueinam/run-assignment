@@ -1,7 +1,13 @@
-import { createContext, useContext, useEffect, useRef, type ReactNode } from 'react';
-import { isEventOnTextInput } from '../../utils/isEventOnTextInput';
-import { useDevtools } from '../../hooks/useDevtools';
-import {useEventListener} from 'ahooks'
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  type ReactNode,
+} from "react";
+import { isEventOnTextInput } from "../../utils/isEventOnTextInput";
+import { useDevtools } from "../../hooks/useDevtools";
+import { useEventListener } from "ahooks";
 
 // Types
 type ShortcutListener = () => void;
@@ -70,7 +76,7 @@ function canActivate(
 
   if (
     activeOnHoverElement !== undefined &&
-    !activeOnHoverElement?.matches(':hover')
+    !activeOnHoverElement?.matches(":hover")
   ) {
     return false;
   }
@@ -79,39 +85,42 @@ function canActivate(
 }
 
 // Context
-const KeyboardShortcutContext = createContext<KeyboardShortcutContextValue | null>(null);
+const KeyboardShortcutContext =
+  createContext<KeyboardShortcutContextValue | null>(null);
 
 // Root Provider Component
-export function KeyboardShortcutProvider({ children }: KeyboardShortcutProviderProps) {
+export function KeyboardShortcutProvider({
+  children,
+}: KeyboardShortcutProviderProps) {
   const shortcutsMap = useRef(new Map<string, ShortcutItem[]>()).current;
   const shortcutsMaps = useRef([shortcutsMap]).current;
   const devtools = useDevtools();
 
-  const timelineLayerId = 'keyboard-shortcuts';
+  const timelineLayerId = "keyboard-shortcuts";
 
-  useEventListener('keydown', (event: KeyboardEvent) => {
+  useEventListener("keydown", (event: KeyboardEvent) => {
     // Fix for when event.key is sometimes undefined
-    if (typeof event.key !== 'string') {
+    if (typeof event.key !== "string") {
       return;
     }
 
     const keyParts: string[] = [];
 
     if (event.altKey) {
-      keyParts.push('ALT');
+      keyParts.push("ALT");
     }
 
     if (event.ctrlKey || event.metaKey) {
-      keyParts.push('COMMAND');
+      keyParts.push("COMMAND");
     }
 
     if (event.shiftKey && event.key.toUpperCase() !== event.key.toLowerCase()) {
-      keyParts.push('SHIFT');
+      keyParts.push("SHIFT");
     }
 
     keyParts.push(event.key.toUpperCase());
 
-    const key = keyParts.join(' ');
+    const key = keyParts.join(" ");
 
     const listener = shortcutsMaps
       .at(-1)
@@ -124,12 +133,12 @@ export function KeyboardShortcutProvider({ children }: KeyboardShortcutProviderP
       event.stopPropagation();
       listener();
 
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV === "development") {
         devtools?.addTimelineEvent?.({
           layerId: timelineLayerId,
           event: {
             time: devtools.now(),
-            title: keyParts.join(' + '),
+            title: keyParts.join(" + "),
             data: {
               rawEvent: event,
               keyParts,
@@ -147,22 +156,24 @@ export function KeyboardShortcutProvider({ children }: KeyboardShortcutProviderP
   };
 
   return (
-    <KeyboardShortcutContext.Provider value={contextValue}>
+    <KeyboardShortcutContext value={contextValue}>
       {children}
-    </KeyboardShortcutContext.Provider>
+    </KeyboardShortcutContext>
   );
 }
 
 // Context Provider for hierarchical shortcuts
-export function KeyboardShortcutContextProvider({ 
-  contextActive, 
-  children 
+export function KeyboardShortcutContextProvider({
+  contextActive,
+  children,
 }: KeyboardShortcutContextProviderProps) {
   const parentContext = useContext(KeyboardShortcutContext);
   const shortcutsMap = useRef(new Map<string, ShortcutItem[]>()).current;
 
   if (!parentContext) {
-    throw new Error('KeyboardShortcutContextProvider must be used within KeyboardShortcutProvider');
+    throw new Error(
+      "KeyboardShortcutContextProvider must be used within KeyboardShortcutProvider"
+    );
   }
 
   const { shortcutsMaps } = parentContext;
@@ -185,9 +196,9 @@ export function KeyboardShortcutContextProvider({
   };
 
   return (
-    <KeyboardShortcutContext.Provider value={contextValue}>
+    <KeyboardShortcutContext value={contextValue}>
       {children}
-    </KeyboardShortcutContext.Provider>
+    </KeyboardShortcutContext>
   );
 }
 
@@ -201,9 +212,11 @@ export function useKeyboardShortcut(
   } = {}
 ) {
   const context = useContext(KeyboardShortcutContext);
-  
+
   if (!context) {
-    throw new Error('useKeyboardShortcut must be used within KeyboardShortcutProvider');
+    throw new Error(
+      "useKeyboardShortcut must be used within KeyboardShortcutProvider"
+    );
   }
 
   const { shortcutsMap } = context;
@@ -214,12 +227,15 @@ export function useKeyboardShortcut(
     // - modifiers in alphabetical order followed by the main key
     // - one space between modifiers and the main key
     // - all uppercase
-    const keyParts = shortcutKey.toUpperCase().split(' ').filter(Boolean);
+    const keyParts = shortcutKey.toUpperCase().split(" ").filter(Boolean);
     const lastKeyPart = keyParts.pop();
 
     if (!lastKeyPart) return;
 
-    if (lastKeyPart === lastKeyPart.toLowerCase() && keyParts.includes('SHIFT')) {
+    if (
+      lastKeyPart === lastKeyPart.toLowerCase() &&
+      keyParts.includes("SHIFT")
+    ) {
       console.warn(
         `useKeyboardShortcut: Please remove the SHIFT modifier to make "${shortcutKey}" work regardless of different keyboard layouts.`
       );
@@ -227,14 +243,18 @@ export function useKeyboardShortcut(
 
     keyParts.sort();
     keyParts.push(lastKeyPart);
-    const key = keyParts.join(' ');
+    const key = keyParts.join(" ");
 
     if (!shortcutsMap.has(key)) {
       shortcutsMap.set(key, []);
     }
 
     const shortcuts = shortcutsMap.get(key)!;
-    const newItem: ShortcutItem = { listener, activeOnInput, activeOnHoverElement };
+    const newItem: ShortcutItem = {
+      listener,
+      activeOnInput,
+      activeOnHoverElement,
+    };
 
     shortcuts.unshift(newItem);
 
@@ -244,7 +264,13 @@ export function useKeyboardShortcut(
         shortcuts.splice(index, 1);
       }
     };
-  }, [shortcutKey, listener, activeOnInput, activeOnHoverElement, shortcutsMap]);
+  }, [
+    shortcutKey,
+    listener,
+    activeOnInput,
+    activeOnHoverElement,
+    shortcutsMap,
+  ]);
 }
 
 // Component wrapper for keyboard shortcuts
@@ -255,12 +281,15 @@ interface UseKeyboardShortcutProps {
   activeOnHoverElement?: HTMLElement | null;
 }
 
-export function UseKeyboardShortcut({ 
-  shortcut, 
-  onActivate, 
-  activeOnInput = false, 
-  activeOnHoverElement 
+export function UseKeyboardShortcut({
+  shortcut,
+  onActivate,
+  activeOnInput = false,
+  activeOnHoverElement,
 }: UseKeyboardShortcutProps) {
-  useKeyboardShortcut(shortcut, onActivate, { activeOnInput, activeOnHoverElement });
+  useKeyboardShortcut(shortcut, onActivate, {
+    activeOnInput,
+    activeOnHoverElement,
+  });
   return null;
 }

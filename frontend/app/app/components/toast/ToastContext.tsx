@@ -78,11 +78,7 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
     [list, add, remove, success, info, error]
   );
 
-  return (
-    <ToastContext.Provider value={contextValue}>
-      {children}
-    </ToastContext.Provider>
-  );
+  return <ToastContext value={contextValue}>{children}</ToastContext>;
 };
 
 export const useToast = () => {
