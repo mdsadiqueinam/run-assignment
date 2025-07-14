@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { useLocalStorageState } from "ahooks";
+import { useLocalStorageState, useSessionStorageState } from "ahooks";
 import { v4 as uuidv4 } from "uuid";
 
 // Session state management
@@ -14,7 +14,7 @@ function updateSession(newSession: any) {
 
 // Custom hook for current session
 export const useCurrentSession = () => {
-  const [TAB_ID, setTabId] = useSessionStorageState("tab-id");
+  const [TAB_ID, setTabId] = useSessionStorageState<string>("tab-id");
 
   if (!TAB_ID) {
     setTabId(`tab-${uuidv4()}`);
@@ -157,6 +157,7 @@ export const useCurrentSession = () => {
 
   return {
     session,
+    TAB_ID,
     isImpersonating,
     originalUserName,
     returnToOriginalUser,
